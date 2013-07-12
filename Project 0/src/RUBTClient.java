@@ -34,42 +34,17 @@ public class RUBTClient {
 			return;
 		}
 
-		Object o;
-
+		TorrentInfo ti;
+		
 		try {
-			o = Bencoder2.getInfoBytes(torrentFileBytes);
-		} catch (BencodingException e) {
-			System.out.println("Something is wrong with the bencoder.");
-			e.printStackTrace();
+			ti = new TorrentInfo(torrentFileBytes);
+			System.out.println(ti.announce_url);
+		} catch (BencodingException be) {
+			be.printStackTrace();
 			return;
 		}
-
-		ByteBuffer b = (ByteBuffer) o;
-
-		try {
-			o = Bencoder2.decode(b.array());
-		} catch (BencodingException e) {
-			e.printStackTrace();
-		}
-
-		HashMap hm = (HashMap) o;
-
-		Set s = hm.keySet();
-
-		for (int i = 0; i < s.size(); i++) {
-			b = (ByteBuffer) s.toArray()[i];
-
-			System.out.print("\n" + byteBufferToString(b) + " : ");
-
-			try {
-				// is it a string?
-				b = (ByteBuffer) hm.get(s.toArray()[i]);
-				System.out.print(byteBufferToString(b) + " try");
-			} catch (Exception e) {
-				// everything else
-				System.out.print(hm.get(s.toArray()[i]) + " catch");
-			}
-		}
+		
+		
 	}
 
 	/*
