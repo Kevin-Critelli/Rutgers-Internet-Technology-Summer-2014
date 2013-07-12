@@ -2,11 +2,13 @@ import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
+import java.util.HashMap;
+import java.util.Set;
 
 public class RUBTClient {
 
 	boolean isDevelopment = true;
-	
+
 	/*
 	 * Open the .torrent file and parse the data inside. You may use the
 	 * Bencoder2.java class to decode the data.
@@ -21,9 +23,9 @@ public class RUBTClient {
 
 		simargs[0] = "cs352.png.torrent";
 		simargs[1] = "cs352.png";
-		
+
 		byte[] torrentFileBytes;
-		
+
 		try {
 			torrentFileBytes = readFile(simargs[0]);
 		} catch (IOException e) {
@@ -31,9 +33,9 @@ public class RUBTClient {
 			e.printStackTrace();
 			return;
 		}
-		
+
 		Object o;
-		
+
 		try {
 			o = Bencoder2.getInfoBytes(torrentFileBytes);
 		} catch (BencodingException e) {
@@ -41,13 +43,32 @@ public class RUBTClient {
 			e.printStackTrace();
 			return;
 		}
-		
+
 		ByteBuffer b = (ByteBuffer) o;
-		
-		System.out.println("Executed.");
-		
-		for (int i = 0 ; i < b.capacity(); i++) {
-			System.out.print((char)b.get(i));
+
+		try {
+			o = Bencoder2.decode(b.array());
+		} catch (BencodingException e) {
+			e.printStackTrace();
+		}
+
+		HashMap hm = (HashMap) o;
+
+		Set s = hm.keySet();
+
+		for (int i = 0; i < s.size(); i++) {
+			b = (ByteBuffer) s.toArray()[i];
+
+			System.out.print("\n" + byteBufferToString(b) + " : ");
+
+			try {
+				// is it a string?
+				b = (ByteBuffer) hm.get(s.toArray()[i]);
+				System.out.print(byteBufferToString(b) + " try");
+			} catch (Exception e) {
+				// everything else
+				System.out.print(hm.get(s.toArray()[i]) + " catch");
+			}
 		}
 	}
 
@@ -100,21 +121,36 @@ public class RUBTClient {
 	 * 
 	 * @see http://stackoverflow.com/a/7591216/1489522
 	 * 
-	 * @param file is a filename
+	 * @param file
+	 *            is a filename
 	 * @return a byte array
-	 * @throws IOException if the file doesn't exist or is too big 
+	 * @throws IOException
+	 *             if the file doesn't exist or is too big
 	 */
-	public static byte[] readFile(String file) throws IOException {
-		return readFile(new File(file));
-	}
-
-	public static byte[] readFile(File file) throws IOException {
-		RandomAccessFile f = new RandomAccessFile(file, "r");
+	private static byte[] readFile(String file) throws IOException {
+		RandomAccessFile f = new RandomAccessFile(new File(file), "r");
 		int length = (int) f.length();
 		byte[] data = new byte[length];
 		f.readFully(data);
 		f.close();
 		return data;
+	}
+
+	/**
+	 * This returns a string from a byte array, where every byte is cast to a
+	 * char
+	 * 
+	 * @param b
+	 * @return
+	 */
+	private static String byteBufferToString(ByteBuffer b) {
+		String s = new String();
+
+		for (int i = 0; i < b.array().length; i++) {
+			s += (char) b.array()[i];
+		}
+
+		return s;
 	}
 
 }
