@@ -3,10 +3,10 @@ import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.net.HttpURLConnection;
-import java.net.InetAddress;
 import java.net.URL;
 import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
+import java.util.HashMap;
 
 public class RUBTClient {
 
@@ -21,7 +21,7 @@ public class RUBTClient {
 	private final static String KEY_EVENT_STOPPED = "stopped";
 	private final static String KEY_EVENT_COMPLETELED = "completed";
 	private final static String KEY_IP = "ip"; // optional!
-	
+
 	/*
 	 * Open the .torrent file and parse the data inside. You may use the
 	 * Bencoder2.java class to decode the data.
@@ -54,11 +54,11 @@ public class RUBTClient {
 		/*
 		 * Step 2
 		 */
-		
-		byte[] bytes;
+
+		byte[] trackerResponse;
 
 		try {
-			bytes = getTrackerResponse(ti);
+			trackerResponse = getTrackerResponse(ti);
 		} catch (Exception e) {
 			System.out.println("There was a problem with a GET request.");
 			e.printStackTrace();
@@ -69,7 +69,12 @@ public class RUBTClient {
 		 * Step 3
 		 */
 
-		decodeTrackerResponse();
+		try {
+			decodeTrackerResponse(trackerResponse);
+		} catch (Exception e) {
+			System.out.println("There was a problem decoding the tracker response");
+			e.printStackTrace();
+		}
 
 		/*
 		 * Steps 5-7 and 8
@@ -138,7 +143,7 @@ public class RUBTClient {
 	 */
 	private static byte[] getTrackerResponse(TorrentInfo ti)
 			throws UnknownHostException, IOException {
-			
+
 		String info_hash = toHexString(ti.info_hash.array()); // info_hash
 		String peer_id = toHexString("paukevinsrichschmidt".getBytes()); // peer_id
 		String port = "" + 6883; // port
@@ -146,44 +151,42 @@ public class RUBTClient {
 		String uploaded = "" + 0;
 		String left = "" + ti.file_length;
 		String announceURL = ti.announce_url.toString();
-		
-		String newURL = announceURL.toString();
-		
-		newURL += "?" + KEY_INFO_HASH + "=" + info_hash
-				+ "&" + KEY_PEER_ID + "=" + peer_id 
-				+ "&" + KEY_PORT + "=" + port 
-				+ "&" + KEY_UPLOADED + "=" + uploaded 
-				+ "&" + KEY_DOWNLOADED + "=" + downloaded 
-				+ "&" + KEY_LEFT + "=" + left;
 
-		HttpURLConnection huc = (HttpURLConnection) new URL(newURL).openConnection();
+		String newURL = announceURL.toString();
+
+		newURL += "?" + KEY_INFO_HASH + "=" + info_hash + "&" + KEY_PEER_ID
+				+ "=" + peer_id + "&" + KEY_PORT + "=" + port + "&"
+				+ KEY_UPLOADED + "=" + uploaded + "&" + KEY_DOWNLOADED + "="
+				+ downloaded + "&" + KEY_LEFT + "=" + left;
+
+		HttpURLConnection huc = (HttpURLConnection) new URL(newURL)
+				.openConnection();
 		DataInputStream dis = new DataInputStream(huc.getInputStream());
-		
-		System.out.println(newURL);
-		
+
 		int dataSize = huc.getContentLength();
 		byte[] retArray = new byte[dataSize];
-		
+
 		dis.readFully(retArray);
 		dis.close();
-		
+
 		return retArray;
 
 	}
-	
+
 	public static String toHexString(byte[] bytes) {
 		StringBuilder sb = new StringBuilder(bytes.length * 3);
-		char[] hex = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F' };
-		
+		char[] hex = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A',
+				'B', 'C', 'D', 'E', 'F' };
+
 		for (int i = 0; i < bytes.length; i++) {
 			byte b = bytes[i];
-			
+
 			byte hi = (byte) ((b >> 4) & 0x0f);
 			byte lo = (byte) (b & 0x0f);
 
 			sb.append('%').append(hex[hi]).append(hex[lo]);
 		}
-		
+
 		return sb.toString();
 	}
 
@@ -194,8 +197,14 @@ public class RUBTClient {
 	 * not acceptable.
 	 */
 
-	public static void decodeTrackerResponse() {
-
+	public static Object decodeTrackerResponse(byte[] trackerResponse)
+			throws BencodingException {
+		
+		Object o = Bencoder2.decode(trackerResponse);
+		
+		HashMap<ByteBuffer, Object> response = (HashMap<ByteBuffer, Object>) Bencoder2.decode(trackerResponse);
+		
+		return "";
 	}
 
 	/*
@@ -279,7 +288,7 @@ public class RUBTClient {
 
 		return s;
 	}
-	
+
 	/**
 	 * I'm lazy.
 	 */
