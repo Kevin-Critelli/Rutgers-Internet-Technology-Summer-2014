@@ -3,15 +3,28 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
+import java.net.HttpURLConnection;
+import java.net.InetAddress;
 import java.net.URI;
+import java.net.URL;
 import java.net.URLConnection;
 import java.net.URLEncoder;
 import java.net.UnknownHostException;
 
 public class RUBTClient {
-
-	boolean isDevelopment = true;
-
+	
+	private final static String KEY_INFO_HASH = "info_hash";
+	private final static String KEY_PEER_ID = "peer_id";
+	private final static String KEY_PORT = "port";
+	private final static String KEY_UPLOADED = "uploaded";
+	private final static String KEY_DOWNLOADED = "downloaded";
+	private final static String KEY_LEFT = "left";
+	private final static String KEY_EVENT = "event";
+	private final static String KEY_EVENT_STARTED = "started";
+	private final static String KEY_EVENT_STOPPED = "stopped";
+	private final static String KEY_EVENT_COMPLETELED = "completed";
+	private final static String KEY_IP = "ip"; // optional!
+	
 	/*
 	 * Open the .torrent file and parse the data inside. You may use the
 	 * Bencoder2.java class to decode the data.
@@ -91,16 +104,31 @@ public class RUBTClient {
 	 * @throws IOException
 	 */
 	private static void getTrackerResponse(TorrentInfo ti) throws UnknownHostException, IOException {
-		System.out.println(ti.file_name);
-		URLConnection conn = ti.announce_url.openConnection();
+		URLEncoder ue;
 		
-		addByteBufferKeyValueProperty(conn, TorrentInfo.KEY_INFO, ti.info_hash);
-		addByteBufferKeyValueProperty(conn, TorrentInfo.KEY_LENGTH, "" + ti.file_length);
-		addByteBufferKeyValueProperty(conn, TorrentInfo.KEY_NAME, ti.file_name);
-		addByteBufferKeyValueProperty(conn, TorrentInfo.KEY_PIECE_LENGTH, "" + ti.piece_length);
-		// addByteBufferKeyValueProperty(conn, TorrentInfo.KEY_PIECES, ti.p);
+		String info_hash = URLEncoder.encode(byteBufferToString(ti.info_hash), "utf-8"); // info_hash
+		String peer_id = URLEncoder.encode("" + "paukevinsrichschmidt".length(), "utf-8"); // peer_id
+		String ip = URLEncoder.encode("" + InetAddress.getLocalHost(), "utf-8"); // my ip
+		String port = URLEncoder.encode("" + 6883, "utf-8"); // port
+		String downloaded = URLEncoder.encode("" + 0, "utf-8");
+		String uploaded = URLEncoder.encode("" + 0, "utf-8");
+		String left = URLEncoder.encode("" + ti.file_length, "utf-8");
 		
-		InputStream is = conn.getInputStream();
+		HttpURLConnection connection = (HttpURLConnection) ti.announce_url.openConnection();
+		connection.setRequestMethod("GET");
+		connection.setRequestProperty("Content-Type", "text/plain"); 
+	    connection.setRequestProperty("charset", "utf-8");
+		
+		connection.addRequestProperty(KEY_INFO_HASH, info_hash);
+		connection.addRequestProperty(KEY_PEER_ID, peer_id);
+		connection.addRequestProperty(KEY_IP, ip);
+		connection.addRequestProperty(KEY_PORT, port);
+		connection.addRequestProperty(KEY_DOWNLOADED, downloaded);
+		connection.addRequestProperty(KEY_UPLOADED, uploaded);
+		connection.addRequestProperty(KEY_LEFT, left);
+		
+		connection.connect();
+		print(""+ connection.getResponseCode());
 	}
 	
 	private static void addByteBufferKeyValueProperty(URLConnection conn, ByteBuffer a, ByteBuffer b) {
@@ -182,10 +210,17 @@ public class RUBTClient {
 		String s = new String();
 
 		for (int i = 0; i < b.array().length; i++) {
-			s += (char) b.array()[i];
+			s += b.array()[i];
 		}
 
 		return s;
+	}
+	
+	/**
+	 * I'm lazy.
+	 */
+	private static void print(String s) {
+		System.out.println(s);
 	}
 
 }
