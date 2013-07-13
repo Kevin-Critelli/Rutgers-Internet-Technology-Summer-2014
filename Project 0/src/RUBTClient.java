@@ -1,12 +1,12 @@
+import java.io.DataInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
-import java.nio.ByteBuffer;
 import java.net.HttpURLConnection;
 import java.net.InetAddress;
-import java.net.URLConnection;
-import java.net.URLEncoder;
+import java.net.URL;
 import java.net.UnknownHostException;
+import java.nio.ByteBuffer;
 
 public class RUBTClient {
 
@@ -21,7 +21,7 @@ public class RUBTClient {
 	private final static String KEY_EVENT_STOPPED = "stopped";
 	private final static String KEY_EVENT_COMPLETELED = "completed";
 	private final static String KEY_IP = "ip"; // optional!
-
+	
 	/*
 	 * Open the .torrent file and parse the data inside. You may use the
 	 * Bencoder2.java class to decode the data.
@@ -54,9 +54,11 @@ public class RUBTClient {
 		/*
 		 * Step 2
 		 */
+		
+		byte[] bytes;
 
 		try {
-			getTrackerResponse(ti);
+			bytes = getTrackerResponse(ti);
 		} catch (Exception e) {
 			System.out.println("There was a problem with a GET request.");
 			e.printStackTrace();
@@ -134,47 +136,55 @@ public class RUBTClient {
 	 * @throws UnknownHostException
 	 * @throws IOException
 	 */
-	private static void getTrackerResponse(TorrentInfo ti)
+	private static byte[] getTrackerResponse(TorrentInfo ti)
 			throws UnknownHostException, IOException {
-		URLEncoder ue;
+			
+		String info_hash = toHexString(ti.info_hash.array()); // info_hash
+		String peer_id = toHexString("paukevinsrichschmidt".getBytes()); // peer_id
+		String port = "" + 6883; // port
+		String downloaded = "" + 0;
+		String uploaded = "" + 0;
+		String left = "" + ti.file_length;
+		String announceURL = ti.announce_url.toString();
+		
+		String newURL = announceURL.toString();
+		
+		newURL += "?" + KEY_INFO_HASH + "=" + info_hash
+				+ "&" + KEY_PEER_ID + "=" + peer_id 
+				+ "&" + KEY_PORT + "=" + port 
+				+ "&" + KEY_UPLOADED + "=" + uploaded 
+				+ "&" + KEY_DOWNLOADED + "=" + downloaded 
+				+ "&" + KEY_LEFT + "=" + left;
 
-		String info_hash = URLEncoder.encode(byteBufferToString(ti.info_hash),
-				"utf-8"); // info_hash
-		String peer_id = URLEncoder.encode(
-				"" + "paukevinsrichschmidt".length(), "utf-8"); // peer_id
-		String ip = URLEncoder.encode("" + InetAddress.getLocalHost(), "utf-8"); // my
-																					// ip
-		String port = URLEncoder.encode("" + 6883, "utf-8"); // port
-		String downloaded = URLEncoder.encode("" + 0, "utf-8");
-		String uploaded = URLEncoder.encode("" + 0, "utf-8");
-		String left = URLEncoder.encode("" + ti.file_length, "utf-8");
+		HttpURLConnection huc = (HttpURLConnection) new URL(newURL).openConnection();
+		DataInputStream dis = new DataInputStream(huc.getInputStream());
+		
+		System.out.println(newURL);
+		
+		int dataSize = huc.getContentLength();
+		byte[] retArray = new byte[dataSize];
+		
+		dis.readFully(retArray);
+		dis.close();
+		
+		return retArray;
 
-		HttpURLConnection connection = (HttpURLConnection) ti.announce_url
-				.openConnection();
-		connection.setRequestMethod("GET");
-		connection.setRequestProperty("Content-Type", "text/plain");
-		connection.setRequestProperty("charset", "utf-8");
-
-		connection.addRequestProperty(KEY_INFO_HASH, info_hash);
-		connection.addRequestProperty(KEY_PEER_ID, peer_id);
-		connection.addRequestProperty(KEY_IP, ip);
-		connection.addRequestProperty(KEY_PORT, port);
-		connection.addRequestProperty(KEY_DOWNLOADED, downloaded);
-		connection.addRequestProperty(KEY_UPLOADED, uploaded);
-		connection.addRequestProperty(KEY_LEFT, left);
-
-		connection.connect();
-		print("" + connection.getResponseCode());
 	}
+	
+	public static String toHexString(byte[] bytes) {
+		StringBuilder sb = new StringBuilder(bytes.length * 3);
+		char[] hex = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F' };
+		
+		for (int i = 0; i < bytes.length; i++) {
+			byte b = bytes[i];
+			
+			byte hi = (byte) ((b >> 4) & 0x0f);
+			byte lo = (byte) (b & 0x0f);
 
-	private static void addByteBufferKeyValueProperty(URLConnection conn,
-			ByteBuffer a, ByteBuffer b) {
-		conn.addRequestProperty(byteBufferToString(a), byteBufferToString(b));
-	}
-
-	private static void addByteBufferKeyValueProperty(URLConnection conn,
-			ByteBuffer a, String b) {
-		conn.addRequestProperty(byteBufferToString(a), b);
+			sb.append('%').append(hex[hi]).append(hex[lo]);
+		}
+		
+		return sb.toString();
 	}
 
 	/*
@@ -269,7 +279,7 @@ public class RUBTClient {
 
 		return s;
 	}
-
+	
 	/**
 	 * I'm lazy.
 	 */
