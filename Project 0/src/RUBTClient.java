@@ -1,9 +1,12 @@
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
-import java.util.HashMap;
-import java.util.Set;
+import java.net.URI;
+import java.net.URLConnection;
+import java.net.URLEncoder;
+import java.net.UnknownHostException;
 
 public class RUBTClient {
 
@@ -24,35 +27,90 @@ public class RUBTClient {
 		simargs[0] = "cs352.png.torrent";
 		simargs[1] = "cs352.png";
 
-		byte[] torrentFileBytes;
+		TorrentInfo ti;
 
 		try {
-			torrentFileBytes = readFile(simargs[0]);
-		} catch (IOException e) {
-			System.out.println("The does not exist or is too big.");
+			ti = getTorrentInfoFrom(simargs[0]);
+		} catch (Exception e) {
+			System.out.println("There's something wrong with your torrent info file.");
+			return;
+		}
+
+		try {
+			getTrackerResponse(ti);
+		} catch (Exception e) {
+			System.out.println("There was a problem with a GET request.");
 			e.printStackTrace();
 			return;
 		}
-
-		TorrentInfo ti;
-		
-		try {
-			ti = new TorrentInfo(torrentFileBytes);
-			System.out.println(ti.announce_url);
-		} catch (BencodingException be) {
-			be.printStackTrace();
-			return;
-		}
-		
-		
 	}
 
-	/*
+	/**
+	 * Convinience wrapper for the first step of this assignment, accepting the
+	 * torrent info filename and returning the torrent info object.
+	 * 
+	 * @param file
+	 *            the path to the file
+	 * @return
+	 * @throws IOException
+	 *             if the file doesn't exist
+	 * @throws BencodingException
+	 *             if the file isn't b-encoded properly
+	 */
+	private static TorrentInfo getTorrentInfoFrom(String file)
+			throws IOException, BencodingException {
+		byte[] torrentFileBytes;
+		TorrentInfo ti;
+
+		try {
+			torrentFileBytes = readFile(file);
+		} catch (IOException ioe) {
+			ioe.printStackTrace();
+			throw ioe;
+		}
+
+		try {
+			ti = new TorrentInfo(torrentFileBytes);
+		} catch (BencodingException be) {
+			be.printStackTrace();
+			throw be;
+		}
+
+		return ti;
+	}
+
+	/**
 	 * Send an HTTP GET request to the tracker at the IP address and port
 	 * specified by the TorrentFile object. The java.net.URL class is very
 	 * useful for this.
+	 * 
+	 * @author Paul Jones
+	 * 
+	 * @param ti any torrent info object 
+	 * @throws UnknownHostException 
+	 * @throws IOException
 	 */
-
+	private static void getTrackerResponse(TorrentInfo ti) throws UnknownHostException, IOException {
+		System.out.println(ti.file_name);
+		URLConnection conn = ti.announce_url.openConnection();
+		
+		addByteBufferKeyValueProperty(conn, TorrentInfo.KEY_INFO, ti.info_hash);
+		addByteBufferKeyValueProperty(conn, TorrentInfo.KEY_LENGTH, "" + ti.file_length);
+		addByteBufferKeyValueProperty(conn, TorrentInfo.KEY_NAME, ti.file_name);
+		addByteBufferKeyValueProperty(conn, TorrentInfo.KEY_PIECE_LENGTH, "" + ti.piece_length);
+		// addByteBufferKeyValueProperty(conn, TorrentInfo.KEY_PIECES, ti.p);
+		
+		InputStream is = conn.getInputStream();
+	}
+	
+	private static void addByteBufferKeyValueProperty(URLConnection conn, ByteBuffer a, ByteBuffer b) {
+		conn.addRequestProperty(byteBufferToString(a), byteBufferToString(b));
+	}
+	
+	private static void addByteBufferKeyValueProperty(URLConnection conn, ByteBuffer a, String b) {
+		conn.addRequestProperty(byteBufferToString(a), b);
+	}
+	
 	/*
 	 * Capture the response from the tracker and decode it in order to get the
 	 * list of peers. From this list of peers, use only the peer at IP address
@@ -113,7 +171,9 @@ public class RUBTClient {
 
 	/**
 	 * This returns a string from a byte array, where every byte is cast to a
-	 * char
+	 * char. This is used for debugging and curiosity purposes.
+	 * 
+	 * @author Paul Jones
 	 * 
 	 * @param b
 	 * @return
