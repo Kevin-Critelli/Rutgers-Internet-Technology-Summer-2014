@@ -70,14 +70,16 @@ public class RUBTClient {
 		 * Step 3
 		 */
 
+		TrackerResponse tr = null;
+		
 		try {
-			decodeTrackerResponse(trackerResponse);
+			tr = decodeTrackerResponse(trackerResponse);
 		} catch (Exception e) {
 			System.out
 					.println("There was a problem decoding the tracker response");
 			e.printStackTrace();
 		}
-
+		
 		/*
 		 * Steps 5-7 and 8
 		 */
@@ -199,21 +201,23 @@ public class RUBTClient {
 	 * not acceptable.
 	 */
 
-	public static Object decodeTrackerResponse(byte[] trackerResponse)
+	public static TrackerResponse decodeTrackerResponse(byte[] trackerResponse)
 			throws BencodingException {
 
 		Object o = Bencoder2.decode(trackerResponse);
 
 		HashMap<ByteBuffer, Object> response = (HashMap<ByteBuffer, Object>) o;
 
+		TrackerResponse tr = null;
+		
 		try {
-			TrackerResponse tr = new TrackerResponse(response);
+			tr = new TrackerResponse(response);
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 
-		return "";
+		return tr;
 	}
 
 	/*
