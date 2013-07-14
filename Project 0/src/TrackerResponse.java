@@ -70,7 +70,6 @@ public class TrackerResponse {
 		for (int i = 0; i < 33; i++) {
 			try {
 				String peerIP = "";
-				int peerPort = peersResponse.get() * 256 + peersResponse.get();
 				
 				peerIP += peersResponse.get() & 0xff;
 				peerIP += ":";
@@ -79,6 +78,8 @@ public class TrackerResponse {
 				peerIP += peersResponse.get() & 0xff; 
 				peerIP += ":";
 				peerIP += peersResponse.get() & 0xff;
+				
+				int peerPort = peersResponse.get() * 256 + peersResponse.get();
 				
 				this.peers.add(new Peer(peerPort, peerIP));
 			} catch (Exception e) {

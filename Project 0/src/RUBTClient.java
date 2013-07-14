@@ -80,6 +80,15 @@ public class RUBTClient {
 			e.printStackTrace();
 		}
 		
+		ArrayList<Peer> peers = tr.peers;
+		
+		for (int i = 0; i < peers.size(); i++) {
+			if (peers.get(i).toString().contains("128:6:171:3")) {
+				System.out.println("Found proper peer at index " + i + " with port " + peers.get(i).port);
+			}
+		}
+		
+		
 		/*
 		 * Steps 5-7 and 8
 		 */
