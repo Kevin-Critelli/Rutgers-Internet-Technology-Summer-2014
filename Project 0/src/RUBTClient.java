@@ -6,6 +6,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
 import java.util.HashMap;
 
 public class RUBTClient {
@@ -21,7 +22,7 @@ public class RUBTClient {
 	private final static String KEY_EVENT_STOPPED = "stopped";
 	private final static String KEY_EVENT_COMPLETELED = "completed";
 	private final static String KEY_IP = "ip"; // optional!
-	
+
 	/*
 	 * Open the .torrent file and parse the data inside. You may use the
 	 * Bencoder2.java class to decode the data.
@@ -204,14 +205,14 @@ public class RUBTClient {
 		Object o = Bencoder2.decode(trackerResponse);
 
 		HashMap<ByteBuffer, Object> response = (HashMap<ByteBuffer, Object>) o;
-		
+
 		try {
 			TrackerResponse tr = new TrackerResponse(response);
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		
+
 		return "";
 	}
 

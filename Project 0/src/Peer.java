@@ -1,7 +1,6 @@
 import java.nio.ByteBuffer;
 
 public class Peer {
-	public byte[] peerID;
 	public int port;
 	public String ip;
 
@@ -9,12 +8,13 @@ public class Peer {
 			'p' });
 	public static final ByteBuffer KEY_PORT = ByteBuffer.wrap(new byte[] { 'p',
 			'o', 'r', 't' });
-	public static final ByteBuffer KEY_PEERID = ByteBuffer.wrap(new byte[] {
-			'p', 'e', 'e', 'r', ' ', 'i', 'd' });
 
-	public Peer(byte[] id, int port, String ip) {
-		this.peerID = id;
+	public Peer(int port, String ip) {
 		this.port = port;
 		this.ip = ip;
+	}
+	
+	public String toString() {
+		return "" + ip + ":" + port;
 	}
 }
