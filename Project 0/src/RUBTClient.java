@@ -21,7 +21,7 @@ public class RUBTClient {
 	private final static String KEY_EVENT_STOPPED = "stopped";
 	private final static String KEY_EVENT_COMPLETELED = "completed";
 	private final static String KEY_IP = "ip"; // optional!
-
+	
 	/*
 	 * Open the .torrent file and parse the data inside. You may use the
 	 * Bencoder2.java class to decode the data.
@@ -72,7 +72,8 @@ public class RUBTClient {
 		try {
 			decodeTrackerResponse(trackerResponse);
 		} catch (Exception e) {
-			System.out.println("There was a problem decoding the tracker response");
+			System.out
+					.println("There was a problem decoding the tracker response");
 			e.printStackTrace();
 		}
 
@@ -199,10 +200,17 @@ public class RUBTClient {
 
 	public static Object decodeTrackerResponse(byte[] trackerResponse)
 			throws BencodingException {
-		
+
 		Object o = Bencoder2.decode(trackerResponse);
+
+		HashMap<ByteBuffer, Object> response = (HashMap<ByteBuffer, Object>) o;
 		
-		HashMap<ByteBuffer, Object> response = (HashMap<ByteBuffer, Object>) Bencoder2.decode(trackerResponse);
+		try {
+			TrackerResponse tr = new TrackerResponse(response);
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		
 		return "";
 	}
@@ -279,7 +287,7 @@ public class RUBTClient {
 	 * @param b
 	 * @return
 	 */
-	private static String byteBufferToString(ByteBuffer b) {
+	public static String byteBufferToString(ByteBuffer b) {
 		String s = new String();
 
 		for (int i = 0; i < b.array().length; i++) {
