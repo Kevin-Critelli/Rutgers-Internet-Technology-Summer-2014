@@ -8,7 +8,7 @@ import java.io.PrintWriter;
 public class EchoClient {
 	public static void main(String[] args) throws Exception {
 		Socket s; // this is the principle container/manipulator for this program
-		BufferedReader sin; // to read in from the soscket
+		BufferedReader sin; // to read in from t
 		PrintWriter sout; // to read out from the socket
 		BufferedReader in; // to read form user
 		String host, line; // host is for an argument, line is read in
