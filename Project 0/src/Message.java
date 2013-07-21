@@ -7,6 +7,7 @@
  * */
 
 import java.io.*;
+import java.nio.*;
 
 /**
  * Class representing a message (a stream of bytes) between that is sent between two peers
@@ -114,6 +115,9 @@ public class Message{
 	public final int lengthPrefix;
 	public final byte id;
 	public byte[] message = null;
+	public byte[] info_hash = null;	//used for handshake message
+	public byte[] peerid = null;	//used for handshake message
+	public byte[] piece = null; 	//block of data in a piece messsage
 			
 	//constructor for keep-alive message
 	
@@ -131,6 +135,8 @@ public class Message{
 		this.id = MSG_TYPE_HANDSHAKE;
 		this.message = new byte[68];
 		this.message[0] = (byte)19;
+		this.info_hash = info_hash;
+		this.peerid = peerid;
 		System.arraycopy(PROTOCOL_STRING,0,this.message,1,19);
 		System.arraycopy(info_hash,0,this.message,28,20);
 		System.arraycopy(peerid,0,this.message,48,20);
@@ -224,9 +230,10 @@ public class Message{
 				System.arraycopy(intToByteArray(havePayload),0,this.message,5,4);
 			}
 			else if(id == MSG_TYPE_PIECE){
+				this.piece = pieceBlock;
 				System.arraycopy(intToByteArray(pieceIndex),0,this.message,5,4);		//set index payload
 				System.arraycopy(intToByteArray(pieceBegin),0,this.message,9,4);		//set begin payload
-				System.arraycopy(pieceBlock,0,this.message,13,this.lengthPrefix-8);			//set bock payload
+				System.arraycopy(pieceBlock,0,this.message,13,this.lengthPrefix-9);			//set bock payload
 				
 			}else if(id == MSG_TYPE_REQUEST){
 				System.arraycopy(intToByteArray(requestIndex),0,this.message,5,4);		//set index payload
@@ -241,6 +248,19 @@ public class Message{
 	}
 	
 	/**
+	 * Converts a 4 byte Big-Endian Hex Value to an int
+	 * @author Kevin Critelli
+	 * 
+	 * @param bytes The byte array representing the number
+	 * @return int returns an int representation of the byte 
+	 * 				array
+	 * */
+	
+	public static int byteArrayToInt(byte[] bytes){
+		return java.nio.ByteBuffer.wrap(bytes).getInt();
+	}
+	
+	/**
 	 * Converts an integer value to a 4 byte Big-Endian Hex Value
 	 * @author Kevin Critelli
 	 * 
@@ -248,7 +268,7 @@ public class Message{
 	 * @return byte[] A Byte array of size 4 containing the four Hex values
 	 */ 
 
-	public static final byte[] intToByteArray(int value) {
+	public static byte[] intToByteArray(int value) {
 		byte[] retVal = new byte[4];
 		retVal[0] = (byte) (value >> 24);
 		retVal[1] = (byte) (value >> 16);
@@ -272,6 +292,20 @@ public class Message{
 			case MSG_TYPE_CHOKE: result = "Choke Message";
 									break;
 			case MSG_TYPE_HANDSHAKE: result = "Handshake Mesesage";
+									System.out.print("Protocol ");
+									for(int i=0;i<20;i++){
+										System.out.print(this.message[i]);
+									}System.out.println();
+			
+									System.out.print("Info_hash ");
+									for(int i=0;i<this.info_hash.length;i++){
+										System.out.print(this.info_hash[i]+" ");
+									}System.out.println();
+									
+									System.out.print("peerid ");
+									for(int i=0;i<this.peerid.length;i++){
+										System.out.print(this.peerid[i]);
+									}System.out.println();
 									break;
 			case MSG_TYPE_HAVE: result = "Have Message";
 									break;
@@ -282,6 +316,12 @@ public class Message{
 			case MSG_TYPE_NOT_INTERESTED: result = "Not Interested Message";
 									break;
 			case MSG_TYPE_PIECE: result = "Piece Message";
+									System.out.println("index " + byteArrayToInt(intToByteArray(6)));
+									System.out.println("begin " + byteArrayToInt(intToByteArray(2)));
+									System.out.print("block ");
+									for(int i=0;i<this.piece.length;i++){
+										System.out.print(this.piece[i]);
+									}System.out.println();
 									break;
 			case MSG_TYPE_REQUEST: result = "Request Message";
 									break;
