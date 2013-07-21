@@ -9,7 +9,7 @@
 import java.io.*;
 
 /**
- * Abstract Class representing a message between that is sent between two peers
+ * Class representing a message (a stream of bytes) between that is sent between two peers
  * @author Kevin Critelli
  * 
  * */
@@ -49,13 +49,15 @@ public class Message{
 	 **														the piece, and <length> is the integer specifying the requested 
 	 **														length.<length> is typically 2^14 (16384) bytes. A smaller piece 
 	 **														should only be used if the piece length is not divisible by 16384. 
-	 **														A peer may close the connection if a block larger than 2^14 bytes is requested.
+	 **														A peer may close the connection if a block larger than 2^14 bytes 
+	 **														is requested.
 	 ** 
 	 ** piece: <length prefix> is 9+X and message ID is 7. The payload is as follows:
 	 ** 													<index><begin><block> 
 	 **														Where <index> is an integer specifying the zero-based piece index 
-	 **														<begin> is an integer specifying the zero-based byte offset within the piece 
-	 **														<block> which is a block of data, and is a subset of the piece specified by <index>
+	 **														<begin> is an integer specifying the zero-based byte offset within 
+	 **														the piece <block> which is a block of data, and is a subset of the 
+	 **														piece specified by <index>
 	 **
      *******************************************************************************************************/
 	
@@ -156,15 +158,9 @@ public class Message{
 		}else if(id == MSG_TYPE_HAVE){
 			System.arraycopy(intToByteArray(5),0,this.message,0,4);
 			this.message[4] = (byte)4;
-			//The payload is a zero-based index of the piece that 
-			//has just been downloaded and verified
-			
 		}else if(id == MSG_TYPE_REQUEST){
 			System.arraycopy(intToByteArray(13),0,this.message,0,4);
 			this.message[4] = (byte)6;
-			//<index> is an integer specifying the zero-based piece index 
-			//<begin> is an integer specifying the zero-based byte offset within the piece
-			//<length> is the integer specifying the requested length
 		}else if(id == MSG_TYPE_PIECE){
 			System.arraycopy(intToByteArray(this.lengthPrefix),0,this.message,0,4);
 			this.message[4] = (byte)7;
@@ -226,7 +222,6 @@ public class Message{
 		int requestLength, int requestBegin, int requestIndex, int havePayload){
 			if(id == MSG_TYPE_HAVE){
 				System.arraycopy(intToByteArray(havePayload),0,this.message,5,4);
-				
 			}
 			else if(id == MSG_TYPE_PIECE){
 				System.arraycopy(intToByteArray(pieceIndex),0,this.message,5,4);		//set index payload
@@ -263,7 +258,7 @@ public class Message{
 	}
 	
 	/**
-	 * @Override toString
+	 * @override toString
 	 * 
 	 * */
 	
