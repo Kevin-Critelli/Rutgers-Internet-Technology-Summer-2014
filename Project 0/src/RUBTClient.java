@@ -112,7 +112,7 @@ public static void main(String[] args) {
 	
 	//create peer with connection variables and handshake variables
 	
-	Peer peer = new Peer(peers.get(i).port, ipString, info_hash, peerid);
+	Peer peer = new Peer(peers.get(i).port, ipString, ti, peerid);
 	
 }
 

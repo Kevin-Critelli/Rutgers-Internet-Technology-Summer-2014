@@ -118,15 +118,7 @@ public class Message{
 	public byte[] info_hash = null;	//used for handshake message
 	public byte[] peerid = null;	//used for handshake message
 	public byte[] piece = null; 	//block of data in a piece messsage
-			
-	//constructor for keep-alive message
-	
-	public Message(){
-		this.lengthPrefix = 0;
-		this.id = MSG_TYPE_KEEP_ALIVE;
-		this.message = new byte[] {0,0,0,0};
-	}		
-			
+					
 	//constructor for handshake message		
 			
 	public Message(byte[] info_hash, byte[] peerid){
@@ -143,6 +135,7 @@ public class Message{
 	}	
 	
 	//constructor for rest of message types
+	//when constructing keep-alive message, messageID = -1
 	
 	public Message(int lengthPre, byte messageID){
 		this.id = messageID;
@@ -170,6 +163,8 @@ public class Message{
 		}else if(id == MSG_TYPE_PIECE){
 			System.arraycopy(intToByteArray(this.lengthPrefix),0,this.message,0,4);
 			this.message[4] = (byte)7;
+		}else if(id == MSG_TYPE_KEEP_ALIVE){
+			//no id
 		}
 	}
 	
@@ -256,7 +251,7 @@ public class Message{
 	 * 				array
 	 * */
 	
-	public static int byteArrayToInt(byte[] bytes){
+	public static final int byteArrayToInt(byte[] bytes){
 		return java.nio.ByteBuffer.wrap(bytes).getInt();
 	}
 	
