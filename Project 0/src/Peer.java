@@ -13,6 +13,7 @@ import java.nio.ByteBuffer;
 
 /**
  * Class representing a peer for the download
+ * Thread will support upload/download, run method will process uploads?
  **/ 
 
 public class Peer implements Runnable{
@@ -25,10 +26,8 @@ public class Peer implements Runnable{
 	public OutputStream output = null;
 	public InputStream input = null;
 	public TorrentInfo ti = null;
-	ByteBuffer[] pieces = null;
-	byte[] piece = null;
-	int numPieces = 0;
-	byte [] buffer = null;
+	ArrayList<byte[]> pieces = new ArrayList<byte[]>();	
+	FileOutputStream fileoutput = null;
 
 	//placeholder constructor for trackerresponse class
 	
@@ -36,6 +35,18 @@ public class Peer implements Runnable{
 		this.port = port;
 		this.ip = ip;
 	}		
+			
+	/**
+	 * Constructor Peer object
+	 * 
+	 * @author Kevin Critelli
+	 * 
+	 * @param port The port for this peer connection
+	 * @param ip The string representation of the ip of this peer
+	 * @param ti The torrent info object
+	 * @param peerid The peer id for this peer object
+	 * 
+	 * */		
 			
 	public Peer(int port, String ip, TorrentInfo ti, byte[] peerid) {
 		this.port = port;
@@ -53,10 +64,9 @@ public class Peer implements Runnable{
 			System.out.println("Exception thrown during connection setup");
 		}
 		
-		if(sendHandshake(ti.info_hash.array(),peerid)){
-			System.out.println("handshake accepted");
-		}else{
-			System.out.println("handshake denied");
+		if(!(sendHandshake(ti.info_hash.array(),peerid))){
+			System.out.println("Handshake failed");
+			return;
 		}
 		
 		try{
@@ -71,6 +81,17 @@ public class Peer implements Runnable{
 			System.out.println("Exception thrown during download");
 		}
 	}
+	
+	/**
+	 * Sends a handshake message to a peer
+	 * 
+	 * @author Kevin Critelli
+	 * 
+	 * @param info_hash The byte array representation of the info_hash for this torrent
+	 * @param peerid The byte array represention of peerid
+	 * @return true if this handshake was accepted, false if not
+	 * 
+	 * */
 	
 	public boolean sendHandshake(byte[] info_hash, byte[]peerid){
 		Message handshake = new Message(info_hash,peerid);
@@ -95,339 +116,128 @@ public class Peer implements Runnable{
 		}
 	}
 	
-	public boolean downloadFile()throws Exception{
-		//public final int file_length;
-		//public final int piece_length;
-		//public final ByteBuffer[] piece_hashes;
-		
-		byte[] buf = new byte[17000];
+	/**
+	 * Downloads the file from the peer
+	 * 
+	 * @author Kevin Critelli
+	 * @throws Exception An Exception is thrown an error occurs during the process
+	 * 
+	 * */
 	
-		System.out.println("File size " + ti.file_length);
-		System.out.println("Num Pieces " + ti.piece_hashes.length);
-		System.out.println("Piece Size " + ti.piece_length);
-		
-		for(int i=0;i<6;i++){
-			if(i == 5){
-				String s1 = String.format("%8s", Integer.toBinaryString(din.readByte() & 0xFF)).replace(' ', '0');
-				System.out.println("bit string = " + s1);
-				break;
-			}
-			buf[i] = din.readByte();
-		}
-		
-		//interested message	
+	public boolean downloadFile()throws Exception{
 		Message interestedMessage = new Message(1,(byte)2);
-		System.out.println(interestedMessage);
+		Message request = null;
+		byte[] pieceSubset = null;
+		byte [] buf = null;
+		int lastPieceSize;
+		int count = 16384;
+		int numPieces = 0;
+		int begin = 0;
+		int dif;
+		int i;
+	
+		for(i=0;i<6;i++){ din.readByte();} //bypass bytes
 		
 		dout.write(interestedMessage.message);
 		dout.flush();
 		socket.setSoTimeout(130000);
-		
-		
+	
 		//grab response from interest
-		for(int i=0;i<5;i++){
+		for(i=0;i<5;i++){
 			if(i == 4){
 				if(din.readByte() == 1){
-					System.out.println("unchoked");
+					//unchoked
 					break;
 				}
 			}
 			din.readByte();
 		}
 		
-		//request first piece
-		Message request = new Message(13,(byte)6);
-		request.setPayload(null,-1,-1,16384,0,0,-1);
-		dout.write(request.message);
-		dout.flush();
-		socket.setSoTimeout(1300000);
+		dif = ti.piece_hashes.length - 1;
+		lastPieceSize = ti.file_length - (dif * ti.piece_length);
+		fileoutput = new FileOutputStream(new File("picture.jpg"));
 		
-		buf = new byte[4];
-		for(int i=0;i<4;i++){
-			buf[i] = din.readByte();
+		//READY TO EXCHANGE DATA
+		//loop until we have each piece
+		while(numPieces != ti.piece_hashes.length){
+			//loop until we have each subset of data to make up the piece
+			while(true){
+				if(numPieces + 1 == ti.piece_hashes.length){
+					request = new Message(13,(byte)6);
+					
+					if(lastPieceSize < 16384){
+						count = lastPieceSize;
+					}else{
+						count = 16384;
+					}
+					
+					lastPieceSize = lastPieceSize - 16384;
+					request.setPayload(null,-1,-1,count,begin,numPieces,-1);	
+					dout.write(request.message);
+					dout.flush();
+					socket.setSoTimeout(130000);
+					buf = new byte[4];
+
+					for(i=0;i<4;i++){ buf[i] = din.readByte();} //bypass bytes
+					
+					pieceSubset = new byte[count];
+						
+					for(i=0;i<9;i++){ din.readByte();} //bypass bytes
+						
+					for(i=0;i<count;i++){ pieceSubset[i] = din.readByte();} //save block
+					
+					this.pieces.add(pieceSubset);
+					fileoutput.write(pieceSubset);
+					
+					if(lastPieceSize < 0){
+						numPieces++;
+						break;
+					}
+					begin += count;
+				}else{
+					request = new Message(13,(byte)6);
+					request.setPayload(null,-1,-1,16384,begin,numPieces,-1);
+					dout.write(request.message);
+					dout.flush();
+					socket.setSoTimeout(1300000);
+					
+					buf = new byte[4];
+					for(i=0;i<4;i++){ buf[i] = din.readByte();}
+					
+					pieceSubset = new byte[16384];
+					
+					for(i=0;i<9;i++){ din.readByte();}	//bypass bytes
+
+					for(i=0;i<16384;i++){ pieceSubset[i] = din.readByte();} //save data
+					
+					this.pieces.add(pieceSubset);
+					fileoutput.write(pieceSubset);
+					
+					if(begin+16384 == ti.piece_length){
+						numPieces++;
+						begin = 0;
+						break;
+					}else{
+						begin += 16384;
+					}
+				}
+			}
 		}
-		
-		System.out.println("the length of piece0 sub 1 message " + Message.byteArrayToInt(buf));
-		
-		byte[] piece0Sub1 = new byte[16384];
-		
-		//bypass bytes
-		for(int i=0;i<9;i++){
-			din.readByte();
-			//System.out.println(din.readByte());
-		}
-		
-		for(int i=0;i<16384;i++){
-			piece0Sub1[i] = din.readByte();
-		}
-		
-		System.out.println("got piece 0 sub 1");
-		//end piece1sub1
-		
-		//begin request piece1sub2
-		
-		request.setPayload(null,-1,-1,16384,16384,0,-1);
-		dout.write(request.message);
-		dout.flush();
-		socket.setSoTimeout(1300000);
-		
-		buf = new byte[4];
-		for(int i=0;i<4;i++){
-			buf[i] = din.readByte();
-		}
-		
-		System.out.println("the length of piece 0 sub 2message " + Message.byteArrayToInt(buf));
-		byte [] piece0Sub2 = new byte[16384];
-		
-		for(int i=0;i<9;i++){
-			din.readByte();
-		}
-		
-		for(int i=0;i<16384;i++){
-			piece0Sub2[i] = din.readByte();
-		}
-		
-		System.out.println("got piece 0 sub 2");
-		
-		
-		//begin request piece1sub1
-		
-		request.setPayload(null,-1,-1,16384,0,1,-1);
-		dout.write(request.message);
-		dout.flush();
-		socket.setSoTimeout(1300000);
-	
-		buf = new byte[4];
-		for(int i=0;i<4;i++){
-			buf[i] = din.readByte();
-		}
-		
-		System.out.println("the length of piece 1 sub 1 message " + Message.byteArrayToInt(buf));
-		byte [] piece1Sub1 = new byte[16384];
-		
-		for(int i=0;i<9;i++){
-			din.readByte();
-		}
-		
-		for(int i=0;i<16384;i++){
-			piece1Sub1[i] = din.readByte();
-		}
-		
-		System.out.println("got piece 1 sub 1");
-		
-		//end request piece1sub1
-		
-		//begin request piece1sub2
-		
-		request.setPayload(null,-1,-1,16384,16384,1,-1);
-		dout.write(request.message);
-		dout.flush();
-		socket.setSoTimeout(1300000);
-	
-		buf = new byte[4];
-		for(int i=0;i<4;i++){
-			buf[i] = din.readByte();
-		}
-		
-		System.out.println("the length of piece 1 sub 2 message " + Message.byteArrayToInt(buf));
-		byte [] piece1Sub2 = new byte[16384];
-		
-		for(int i=0;i<9;i++){
-			din.readByte();
-		}
-		
-		for(int i=0;i<16384;i++){
-			piece1Sub2[i] = din.readByte();
-		}
-		
-		System.out.println("got piece 1 sub 2");
-		
-		//end request piece1sub2
-		
-		//begin request piece2sub1
-		
-		request.setPayload(null,-1,-1,16384,0,2,-1);
-		dout.write(request.message);
-		dout.flush();
-		socket.setSoTimeout(1300000);
-	
-		buf = new byte[4];
-		for(int i=0;i<4;i++){
-			buf[i] = din.readByte();
-		}
-		
-		System.out.println("the length of piece 2 sub 1 message " + Message.byteArrayToInt(buf));
-		byte [] piece2Sub1 = new byte[16384];
-		
-		for(int i=0;i<9;i++){
-			din.readByte();
-		}
-		
-		for(int i=0;i<16384;i++){
-			piece2Sub1[i] = din.readByte();
-		}
-		
-		System.out.println("got piece 2 sub 1");
-		
-		//end request piece2sub1
-		
-		//begin request piece2sub2
-		
-		request.setPayload(null,-1,-1,16384,16384,2,-1);
-		dout.write(request.message);
-		dout.flush();
-		socket.setSoTimeout(1300000);
-	
-		buf = new byte[4];
-		for(int i=0;i<4;i++){
-			buf[i] = din.readByte();
-		}
-		
-		System.out.println("the length of piece 2 sub 2 message " + Message.byteArrayToInt(buf));
-		byte [] piece2Sub2 = new byte[16384];
-		
-		for(int i=0;i<9;i++){
-			din.readByte();
-		}
-		
-		for(int i=0;i<16384;i++){
-			piece2Sub2[i] = din.readByte();
-		}
-		
-		System.out.println("got piece 2 sub 2");
-		
-		//end request piece2sub2
-		
-		//begin request piece3sub1
-		
-		request.setPayload(null,-1,-1,16384,0,3,-1);
-		dout.write(request.message);
-		dout.flush();
-		socket.setSoTimeout(1300000);
-	
-		buf = new byte[4];
-		for(int i=0;i<4;i++){
-			buf[i] = din.readByte();
-		}
-		
-		System.out.println("the length of piece 3 sub 1 message " + Message.byteArrayToInt(buf));
-		byte [] piece3Sub1 = new byte[16384];
-		
-		for(int i=0;i<9;i++){
-			din.readByte();
-		}
-		
-		for(int i=0;i<16384;i++){
-			piece3Sub1[i] = din.readByte();
-		}
-		
-		System.out.println("got piece 3 sub 1");
-		
-		//end request piece3sub1
-		
-		//begin request piece3sub2
-		
-		request.setPayload(null,-1,-1,16384,16384,3,-1);
-		dout.write(request.message);
-		dout.flush();
-		socket.setSoTimeout(1300000);
-	
-		buf = new byte[4];
-		for(int i=0;i<4;i++){
-			buf[i] = din.readByte();
-		}
-		
-		System.out.println("the length of piece 3 sub 2 message " + Message.byteArrayToInt(buf));
-		byte [] piece3Sub2 = new byte[16384];
-		
-		for(int i=0;i<9;i++){
-			din.readByte();
-		}
-		
-		for(int i=0;i<16384;i++){
-			piece3Sub2[i] = din.readByte();
-		}
-		
-		System.out.println("got piece 3 sub 2");
-		
-		//end request piece3sub2
-		
-		System.out.println(ti.file_length - (ti.piece_length * 4));
-		
-		//begin request piece4sub1
-		
-		request.setPayload(null,-1,-1,16384,0,4,-1);
-		dout.write(request.message);
-		dout.flush();
-		socket.setSoTimeout(1300000);
-	
-		buf = new byte[4];
-		for(int i=0;i<4;i++){
-			buf[i] = din.readByte();
-		}
-		
-		System.out.println("the length of piece 4 sub 1 message " + Message.byteArrayToInt(buf));
-		byte [] piece4Sub1 = new byte[16384];
-		
-		for(int i=0;i<9;i++){
-			din.readByte();
-		}
-		
-		for(int i=0;i<16384;i++){
-			piece4Sub1[i] = din.readByte();
-		}
-		
-		System.out.println("got piece 4 sub 1");
-		
-		//end request piece4sub1
-		
-		//begin request piece4sub2
-		
-		request.setPayload(null,-1,-1,20637-16384,16384,4,-1);
-		dout.write(request.message);
-		dout.flush();
-		socket.setSoTimeout(1300000);
-	
-		buf = new byte[4];
-		for(int i=0;i<4;i++){
-			buf[i] = din.readByte();
-		}
-		
-		System.out.println("the length of piece 4 sub 2 message " + Message.byteArrayToInt(buf));
-		byte [] piece4Sub2 = new byte[20637-16384];
-		
-		for(int i=0;i<9;i++){
-			din.readByte();
-		}
-		
-		for(int i=0;i<piece4Sub2.length;i++){
-			piece4Sub2[i] = din.readByte();
-		}
-		
-		System.out.println("got piece 4 sub 2");
-		
-		//end request piece4sub2
-		
-		
-		FileOutputStream fileoutput = new FileOutputStream(new File("picture.jpg"));
-		fileoutput.write(piece0Sub1);
-		fileoutput.write(piece0Sub2);
-		fileoutput.write(piece1Sub1);
-		fileoutput.write(piece1Sub2);
-		fileoutput.write(piece2Sub1);
-		fileoutput.write(piece2Sub2);
-		fileoutput.write(piece3Sub1);
-		fileoutput.write(piece3Sub2);
-		fileoutput.write(piece4Sub1);
-		fileoutput.write(piece4Sub2);
-	
 		return true;
 	}
+	
+	/**
+	 * Closes all sockets/streams
+	 * 
+	 * @author Kevin Critelli
+	 * @throws Exception Throws a general Exception when an error occurs
+	 * */
 	
 	public void completeConnection()throws Exception{
 		socket.close();
 		din.close();
 		dout.close();
+		fileoutput.close();
 	}
 	
 	public String toString() {
