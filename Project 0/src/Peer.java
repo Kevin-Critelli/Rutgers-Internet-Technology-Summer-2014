@@ -16,6 +16,12 @@ import java.nio.ByteBuffer;
  * Thread will support upload/download, run method will process uploads?
  **/ 
 
+/*************************************************************
+// Richie wuz here. 
+// We may want to use synchronized instead of runnable? 
+// More to come soon. 
+//************************************************************
+
 public class Peer implements Runnable{
 	
 	public int port;
