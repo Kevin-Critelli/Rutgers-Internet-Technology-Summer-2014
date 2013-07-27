@@ -37,7 +37,8 @@ public class RUBTClient {
 		 */
 
 		TorrentInfo torrentInfo = TorrentInfo.getTorrentInfoFrom(torrentFile);
-
+		System.out.println(torrentInfo);
+		
 		/**
 		 * 3. Contact the tracker via the announce URL, including all of the
 		 * necessary key/value pairs in the request. The java.net.URL class is a

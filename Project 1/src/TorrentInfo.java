@@ -46,42 +46,7 @@ import java.util.Map;
  * 
  */
 public class TorrentInfo {
-	/**
-	 * Key used to retrieve the info dictionary from the torrent metainfo file.
-	 */
-	public final static ByteBuffer KEY_INFO = ByteBuffer.wrap(new byte[] { 'i',
-			'n', 'f', 'o' });
-
-	/**
-	 * Key used to retrieve the length of the torrent.
-	 */
-	public final static ByteBuffer KEY_LENGTH = ByteBuffer.wrap(new byte[] {
-			'l', 'e', 'n', 'g', 't', 'h' });
-
-	/**
-	 * Key used to retrieve the piece hashes.
-	 */
-	public final static ByteBuffer KEY_PIECES = ByteBuffer.wrap(new byte[] {
-			'p', 'i', 'e', 'c', 'e', 's' });
-
-	/**
-	 * Key used to retrieve the file name.
-	 */
-	public final static ByteBuffer KEY_NAME = ByteBuffer.wrap(new byte[] { 'n',
-			'a', 'm', 'e' });
-
-	/**
-	 * Key used to retrieve the default piece length.
-	 */
-	public final static ByteBuffer KEY_PIECE_LENGTH = ByteBuffer
-			.wrap(new byte[] { 'p', 'i', 'e', 'c', 'e', ' ', 'l', 'e', 'n',
-					'g', 't', 'h' });
-
-	/**
-	 * ByteBuffer to retrieve the announce URL from the metainfo dictionary.
-	 */
-	public static final ByteBuffer KEY_ANNOUNCE = ByteBuffer.wrap(new byte[] {
-			'a', 'n', 'n', 'o', 'u', 'n', 'c', 'e' });
+	
 
 	/**
 	 * A byte array containing the raw bytes of the torrent metainfo file.
@@ -171,6 +136,15 @@ public class TorrentInfo {
 		return ti;
 	}
 	
+	public String toString() {
+		String ret = "TorrentInfo:\n";
+		
+		ret += "\tfilename:\t" + this.file_name + "\n";
+		ret += "\tannounce url:\t" + this.announce_url + "\n";
+		
+		return ret;
+	}
+	
 	/**
 	 * Convinience method for getting byte array adapted from
 	 * 
@@ -216,7 +190,7 @@ public class TorrentInfo {
 
 		// Try to extract the announce URL
 		ByteBuffer url_buff = (ByteBuffer) this.torrent_file_map
-				.get(TorrentInfo.KEY_ANNOUNCE);
+				.get(RUBTClientConstants.KEY_ANNOUNCE);
 		if (url_buff == null)
 			throw new BencodingException(
 					"Could not retrieve anounce URL from torrent metainfo. Corrupt file?");
@@ -234,7 +208,7 @@ public class TorrentInfo {
 		// Try to extract the info dictionary
 		ByteBuffer info_bytes = Bencoder2.getInfoBytes(torrent_file_bytes);
 		Map<ByteBuffer, Object> info_map = (Map<ByteBuffer, Object>) this.torrent_file_map
-				.get(TorrentInfo.KEY_INFO);
+				.get(RUBTClientConstants.KEY_INFO);
 
 		if (info_map == null)
 			throw new BencodingException(
@@ -253,7 +227,7 @@ public class TorrentInfo {
 
 		// Extract the piece length from the info dictionary
 		Integer piece_length = (Integer) this.info_map
-				.get(TorrentInfo.KEY_PIECE_LENGTH);
+				.get(RUBTClientConstants.KEY_PIECE_LENGTH);
 		if (piece_length == null)
 			throw new BencodingException(
 					"Could not extract piece length from info dictionary. Corrupt file?");
@@ -261,7 +235,7 @@ public class TorrentInfo {
 
 		// Extract the file name from the info dictionary
 		ByteBuffer name_bytes = (ByteBuffer) this.info_map
-				.get(TorrentInfo.KEY_NAME);
+				.get(RUBTClientConstants.KEY_NAME);
 		if (name_bytes == null)
 			throw new BencodingException(
 					"Could not retrieve file name from info dictionary. Corrupt file?");
@@ -273,7 +247,7 @@ public class TorrentInfo {
 
 		// Extract the file length from the info dictionary
 		Integer file_length = (Integer) this.info_map
-				.get(TorrentInfo.KEY_LENGTH);
+				.get(RUBTClientConstants.KEY_LENGTH);
 		if (file_length == null)
 			throw new BencodingException(
 					"Could not extract file length from info dictionary. Corrupt file?");
@@ -281,7 +255,7 @@ public class TorrentInfo {
 
 		// Extract the piece hashes from the info dictionary
 		ByteBuffer all_hashes = (ByteBuffer) this.info_map
-				.get(TorrentInfo.KEY_PIECES);
+				.get(RUBTClientConstants.KEY_PIECES);
 		if (all_hashes == null)
 			throw new BencodingException(
 					"Could not extract piece hashes from info dictionary. Corrupt file?");
