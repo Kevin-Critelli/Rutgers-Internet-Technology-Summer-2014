@@ -103,6 +103,17 @@ public class TorrentInfo {
 	 */
 	public final ByteBuffer[] piece_hashes;
 
+	public String toString() {
+		String ret = "TorrentInfo:\n";
+		
+		ret += "\tfilename:\t" + this.file_name + "\n";
+		ret += "\tannounce url:\t" + this.announce_url + "\n";
+		ret += "\tinfo hash:\t" + RUBTClientUtils.byteBufferToString(this.info_hash) + "\n";
+		ret += "\tpiece length:\t" + this.piece_length + "\n";
+		
+		return ret;
+	}
+	
 	/**
 	 * Convinience wrapper for the first step of this assignment, accepting the
 	 * torrent info filename and returning the torrent info object.
@@ -134,15 +145,6 @@ public class TorrentInfo {
 		}
 
 		return ti;
-	}
-	
-	public String toString() {
-		String ret = "TorrentInfo:\n";
-		
-		ret += "\tfilename:\t" + this.file_name + "\n";
-		ret += "\tannounce url:\t" + this.announce_url + "\n";
-		
-		return ret;
 	}
 	
 	/**

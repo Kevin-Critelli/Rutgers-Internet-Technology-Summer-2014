@@ -1,3 +1,11 @@
+import java.io.DataInputStream;
+import java.io.IOException;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.net.UnknownHostException;
+import java.nio.ByteBuffer;
+import java.util.HashMap;
+
 /**
  * @author pauljones
  * 
@@ -37,7 +45,9 @@ public class RUBTClient {
 		 */
 
 		TorrentInfo torrentInfo = TorrentInfo.getTorrentInfoFrom(torrentFile);
-		System.out.println(torrentInfo);
+		
+		if (RUBTClientConstants.DEVELOP)
+			System.out.println(torrentInfo);
 		
 		/**
 		 * 3. Contact the tracker via the announce URL, including all of the
@@ -46,7 +56,10 @@ public class RUBTClient {
 		 * 
 		 */
 		
+		TrackerResponse trackerResponse = new TrackerResponse(torrentInfo);
 		
+		if (RUBTClientConstants.DEVELOP) {
+			System.out.println(trackerResponse);
+		}
 	}
-
 }

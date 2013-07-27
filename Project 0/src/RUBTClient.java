@@ -159,48 +159,7 @@ public class RUBTClient {
 		return ti;
 	}
 
-	/**
-	 * Send an HTTP GET request to the tracker at the IP address and port
-	 * specified by the TorrentFile object. The java.net.URL class is very
-	 * useful for this.
-	 * 
-	 * @author Paul Jones
-	 * 
-	 * @param ti
-	 *            any torrent info object
-	 * @throws UnknownHostException
-	 * @throws IOException
-	 */
-	private static byte[] getTrackerResponse(TorrentInfo ti)
-			throws UnknownHostException, IOException {
-
-		String info_hash = toHexString(ti.info_hash.array()); // info_hash
-		String peer_id = toHexString("paukevinsrichschmidt".getBytes()); // peer_id
-		String port = "" + 6883; // port
-		String downloaded = "" + 0;
-		String uploaded = "" + 0;
-		String left = "" + ti.file_length;
-		String announceURL = ti.announce_url.toString();
-
-		String newURL = announceURL.toString();
-
-		newURL += "?" + KEY_INFO_HASH + "=" + info_hash + "&" + KEY_PEER_ID
-				+ "=" + peer_id + "&" + KEY_PORT + "=" + port + "&"
-				+ KEY_UPLOADED + "=" + uploaded + "&" + KEY_DOWNLOADED + "="
-				+ downloaded + "&" + KEY_LEFT + "=" + left;
-
-		HttpURLConnection huc = (HttpURLConnection) new URL(newURL)
-				.openConnection();
-		DataInputStream dis = new DataInputStream(huc.getInputStream());
-
-		int dataSize = huc.getContentLength();
-		byte[] retArray = new byte[dataSize];
-
-		dis.readFully(retArray);
-		dis.close();
-
-		return retArray;
-	}
+	
 
 	public static String toHexString(byte[] bytes) {
 		StringBuilder sb = new StringBuilder(bytes.length * 3);
@@ -243,6 +202,49 @@ public class RUBTClient {
 		return tr;
 	}
 
+	/**
+	 * Send an HTTP GET request to the tracker at the IP address and port
+	 * specified by the TorrentFile object. The java.net.URL class is very
+	 * useful for this.
+	 * 
+	 * @author Paul Jones
+	 * 
+	 * @param ti
+	 *            any torrent info object
+	 * @throws UnknownHostException
+	 * @throws IOException
+	 */
+	private static byte[] getTrackerResponse(TorrentInfo ti)
+			throws UnknownHostException, IOException {
+
+		String info_hash = toHexString(ti.info_hash.array()); // info_hash
+		String peer_id = toHexString("paukevinsrichschmidt".getBytes()); // peer_id
+		String port = "" + 6883; // port
+		String downloaded = "" + 0;
+		String uploaded = "" + 0;
+		String left = "" + ti.file_length;
+		String announceURL = ti.announce_url.toString();
+
+		String newURL = announceURL.toString();
+
+		newURL += "?" + KEY_INFO_HASH + "=" + info_hash + "&" + KEY_PEER_ID
+				+ "=" + peer_id + "&" + KEY_PORT + "=" + port + "&"
+				+ KEY_UPLOADED + "=" + uploaded + "&" + KEY_DOWNLOADED + "="
+				+ downloaded + "&" + KEY_LEFT + "=" + left;
+
+		HttpURLConnection huc = (HttpURLConnection) new URL(newURL)
+				.openConnection();
+		DataInputStream dis = new DataInputStream(huc.getInputStream());
+
+		int dataSize = huc.getContentLength();
+		byte[] retArray = new byte[dataSize];
+
+		dis.readFully(retArray);
+		dis.close();
+
+		return retArray;
+	}
+	
 	/**
 	 * Convinience method for getting byte array adapted from
 	 * 

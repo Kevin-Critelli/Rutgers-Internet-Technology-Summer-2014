@@ -6,6 +6,11 @@
  * Paul Jones
  * */
 
+import java.io.DataInputStream;
+import java.io.IOException;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -27,6 +32,22 @@ public class TrackerResponse {
 	public int incomplete;
 	public ArrayList<Peer> peers;
 
+	public String toString() {
+		String ret = "TrackerResponse: \n";
+		
+		ret += "\tTracker ID:\t" + trackerID + "\n";
+		ret += "\tInterval:\t" + interval + "\n";
+		ret += "\tComplete:\t" + complete + "\n";
+		ret += "\tIncomplete:\t" + incomplete + "\n";
+		ret += "\tPeers:\n";
+		
+		for (int i = 0; i < peers.size(); i++) {
+			ret += "\t\t" + peers.get(i) + "\n";
+		}
+		
+		return ret;
+	}
+	
 	public static final ByteBuffer KEY_FAILURE = ByteBuffer.wrap(new byte[] {
 			'f', 'a', 'i', 'l', 'u', 'r', 'e', ' ', 'r', 'e', 'a', 's', 'o',
 			'n' });
@@ -42,10 +63,31 @@ public class TrackerResponse {
 	public static final ByteBuffer KEY_INCOMPLETE = ByteBuffer.wrap(new byte[] {
 			'i', 'n', 'c', 'o', 'm', 'p', 'l', 'e', 't', 'e' });
 
-	public TrackerResponse(HashMap<ByteBuffer, Object> response)
-			throws Exception {
+	public TrackerResponse(TorrentInfo torrentInfo) {
+		
+		byte[] encodedResponse = null;
+		try {
+			encodedResponse = getTrackerResponse(torrentInfo);
+		} catch (UnknownHostException e2) {
+			// TODO Auto-generated catch block
+			e2.printStackTrace();
+		} catch (IOException e2) {
+			// TODO Auto-generated catch block
+			e2.printStackTrace();
+		}
+		
+		Object o = null;
+		try {
+			o = Bencoder2.decode(encodedResponse);
+		} catch (BencodingException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+
+		HashMap<ByteBuffer, Object> response = (HashMap<ByteBuffer, Object>) o;
+		
 		if (response.containsKey(KEY_FAILURE)) {
-			throw new Exception("Tracker failed");
+			//throw new Exception("Tracker failed");
 		}
 
 		if (response.containsKey(KEY_INTERVAL))
@@ -108,6 +150,49 @@ public class TrackerResponse {
 				// Also I'm sorry. This sucks.
 			}
 		}
+	}
+	
+	/**
+	 * Send an HTTP GET request to the tracker at the IP address and port
+	 * specified by the TorrentFile object. The java.net.URL class is very
+	 * useful for this.
+	 * 
+	 * @author Paul Jones
+	 * 
+	 * @param ti
+	 *            any torrent info object
+	 * @throws UnknownHostException
+	 * @throws IOException
+	 */
+	private static byte[] getTrackerResponse(TorrentInfo ti)
+			throws UnknownHostException, IOException {
+
+		String info_hash = RUBTClientUtils.toHexString(ti.info_hash.array()); // info_hash
+		String peer_id = RUBTClientUtils.toHexString("paukevinsrichschmidt".getBytes()); // peer_id
+		String port = "" + 6883; // port
+		String downloaded = "" + 0;
+		String uploaded = "" + 0;
+		String left = "" + ti.file_length;
+		String announceURL = ti.announce_url.toString();
+
+		String newURL = announceURL.toString();
+
+		newURL += "?" + RUBTClientConstants.TR_KEY_INFO_HASH + "=" + info_hash + "&" + RUBTClientConstants.TR_KEY_PEER_ID
+				+ "=" + peer_id + "&" + RUBTClientConstants.TR_KEY_PORT + "=" + port + "&"
+				+ RUBTClientConstants.TR_KEY_UPLOADED + "=" + uploaded + "&" + RUBTClientConstants.TR_KEY_DOWNLOADED + "="
+				+ downloaded + "&" + RUBTClientConstants.TR_KEY_LEFT + "=" + left;
+
+		HttpURLConnection huc = (HttpURLConnection) new URL(newURL)
+				.openConnection();
+		DataInputStream dis = new DataInputStream(huc.getInputStream());
+
+		int dataSize = huc.getContentLength();
+		byte[] retArray = new byte[dataSize];
+
+		dis.readFully(retArray);
+		dis.close();
+
+		return retArray;
 	}
 
 }

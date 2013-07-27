@@ -1,6 +1,9 @@
 import java.nio.ByteBuffer;
 
 public class RUBTClientConstants {
+	
+	public final static boolean DEVELOP = true;
+	
 	/**
 	 * Key used to retrieve the info dictionary from the torrent metainfo file.
 	 */
@@ -36,4 +39,11 @@ public class RUBTClientConstants {
 	 */
 	public static final ByteBuffer KEY_ANNOUNCE = ByteBuffer.wrap("announce"
 			.getBytes());
+	
+	public final static String TR_KEY_INFO_HASH = "info_hash";
+	public final static String TR_KEY_PEER_ID = "peer_id";
+	public final static String TR_KEY_PORT = "port";
+	public final static String TR_KEY_UPLOADED = "uploaded";
+	public final static String TR_KEY_DOWNLOADED = "downloaded";
+	public final static String TR_KEY_LEFT = "left";
 }
