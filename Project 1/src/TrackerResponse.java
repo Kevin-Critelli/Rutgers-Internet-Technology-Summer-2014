@@ -34,37 +34,22 @@ public class TrackerResponse {
 
 	public String toString() {
 		String ret = "TrackerResponse: \n";
-		
+
 		ret += "\tTracker ID:\t" + trackerID + "\n";
 		ret += "\tInterval:\t" + interval + "\n";
 		ret += "\tComplete:\t" + complete + "\n";
 		ret += "\tIncomplete:\t" + incomplete + "\n";
 		ret += "\tPeers:\n";
-		
+
 		for (int i = 0; i < peers.size(); i++) {
 			ret += "\t\t" + peers.get(i) + "\n";
 		}
-		
+
 		return ret;
 	}
-	
-	public static final ByteBuffer KEY_FAILURE = ByteBuffer.wrap(new byte[] {
-			'f', 'a', 'i', 'l', 'u', 'r', 'e', ' ', 'r', 'e', 'a', 's', 'o',
-			'n' });
-	public static final ByteBuffer KEY_PEERS = ByteBuffer.wrap(new byte[] {
-			'p', 'e', 'e', 'r', 's' });
-	public static final ByteBuffer KEY_INTERVAL = ByteBuffer.wrap(new byte[] {
-			'i', 'n', 't', 'e', 'r', 'v', 'a', 'l' });
-	public static final ByteBuffer KEY_MIN_INTERVAL = ByteBuffer
-			.wrap(new byte[] { 'm', 'i', 'n', ' ', 'i', 'n', 't', 'e', 'r',
-					'v', 'a', 'l' });
-	public static final ByteBuffer KEY_COMPLETE = ByteBuffer.wrap(new byte[] {
-			'c', 'o', 'm', 'p', 'l', 'e', 't', 'e' });
-	public static final ByteBuffer KEY_INCOMPLETE = ByteBuffer.wrap(new byte[] {
-			'i', 'n', 'c', 'o', 'm', 'p', 'l', 'e', 't', 'e' });
 
 	public TrackerResponse(TorrentInfo torrentInfo) {
-		
+
 		byte[] encodedResponse = null;
 		try {
 			encodedResponse = getTrackerResponse(torrentInfo);
@@ -75,7 +60,7 @@ public class TrackerResponse {
 			// TODO Auto-generated catch block
 			e2.printStackTrace();
 		}
-		
+
 		Object o = null;
 		try {
 			o = Bencoder2.decode(encodedResponse);
@@ -85,34 +70,34 @@ public class TrackerResponse {
 		}
 
 		HashMap<ByteBuffer, Object> response = (HashMap<ByteBuffer, Object>) o;
-		
-		if (response.containsKey(KEY_FAILURE)) {
-			//throw new Exception("Tracker failed");
+
+		if (response.containsKey(RUBTClientConstants.TR_KEY_FAILURE)) {
+			// throw new Exception("Tracker failed");
 		}
 
-		if (response.containsKey(KEY_INTERVAL))
-			this.interval = (Integer) response.get(KEY_INTERVAL);
+		if (response.containsKey(RUBTClientConstants.TR_KEY_INTERVAL))
+			this.interval = (Integer) response.get(RUBTClientConstants.TR_KEY_INTERVAL);
 		else {
 			System.out.println("Warning: no interval, setting to zero");
 			this.interval = 0;
 		}
 
-		if (response.containsKey(KEY_COMPLETE))
-			this.complete = (Integer) response.get(KEY_COMPLETE);
+		if (response.containsKey(RUBTClientConstants.TR_KEY_COMPLETE))
+			this.complete = (Integer) response.get(RUBTClientConstants.TR_KEY_COMPLETE);
 		else {
 			System.out.println("Warning: no complete, setting to zero");
 			this.complete = 0;
 		}
 
-		if (response.containsKey(KEY_INCOMPLETE))
-			this.incomplete = (Integer) response.get(KEY_INCOMPLETE);
+		if (response.containsKey(RUBTClientConstants.TR_KEY_INCOMPLETE))
+			this.incomplete = (Integer) response.get(RUBTClientConstants.TR_KEY_INCOMPLETE);
 		else {
 			System.out.println("Warning: no incomplete, setting to zero");
 			this.incomplete = 0;
 		}
 
-		if (response.containsKey(KEY_MIN_INTERVAL))
-			this.minimumInterval = (Integer) response.get(KEY_MIN_INTERVAL);
+		if (response.containsKey(RUBTClientConstants.TR_KEY_MIN_INTERVAL))
+			this.minimumInterval = (Integer) response.get(RUBTClientConstants.TR_KEY_MIN_INTERVAL);
 		else {
 			System.out.println("Warning: no minimum interval, setting to zero");
 			this.minimumInterval = 0;
@@ -120,7 +105,7 @@ public class TrackerResponse {
 
 		// System.out.println(Bencoder2.getInfoBytes(o.array()));
 
-		ByteBuffer peersResponse = (ByteBuffer) response.get(KEY_PEERS);
+		ByteBuffer peersResponse = (ByteBuffer) response.get(RUBTClientConstants.TR_KEY_PEERS);
 		this.peers = new ArrayList<Peer>();
 
 		for (int i = 0; i < 33; i++) {
@@ -151,7 +136,7 @@ public class TrackerResponse {
 			}
 		}
 	}
-	
+
 	/**
 	 * Send an HTTP GET request to the tracker at the IP address and port
 	 * specified by the TorrentFile object. The java.net.URL class is very
@@ -168,7 +153,8 @@ public class TrackerResponse {
 			throws UnknownHostException, IOException {
 
 		String info_hash = RUBTClientUtils.toHexString(ti.info_hash.array()); // info_hash
-		String peer_id = RUBTClientUtils.toHexString("paukevinsrichschmidt".getBytes()); // peer_id
+		String peer_id = RUBTClientUtils.toHexString("paukevinsrichschmidt"
+				.getBytes()); // peer_id
 		String port = "" + 6883; // port
 		String downloaded = "" + 0;
 		String uploaded = "" + 0;
@@ -177,10 +163,12 @@ public class TrackerResponse {
 
 		String newURL = announceURL.toString();
 
-		newURL += "?" + RUBTClientConstants.TR_KEY_INFO_HASH + "=" + info_hash + "&" + RUBTClientConstants.TR_KEY_PEER_ID
-				+ "=" + peer_id + "&" + RUBTClientConstants.TR_KEY_PORT + "=" + port + "&"
-				+ RUBTClientConstants.TR_KEY_UPLOADED + "=" + uploaded + "&" + RUBTClientConstants.TR_KEY_DOWNLOADED + "="
-				+ downloaded + "&" + RUBTClientConstants.TR_KEY_LEFT + "=" + left;
+		newURL += "?" + RUBTClientConstants.TR_KEY_INFO_HASH + "=" + info_hash
+				+ "&" + RUBTClientConstants.TR_KEY_PEER_ID + "=" + peer_id
+				+ "&" + RUBTClientConstants.TR_KEY_PORT + "=" + port + "&"
+				+ RUBTClientConstants.TR_KEY_UPLOADED + "=" + uploaded + "&"
+				+ RUBTClientConstants.TR_KEY_DOWNLOADED + "=" + downloaded
+				+ "&" + RUBTClientConstants.TR_KEY_LEFT + "=" + left;
 
 		HttpURLConnection huc = (HttpURLConnection) new URL(newURL)
 				.openConnection();
