@@ -46,7 +46,6 @@ import java.util.Map;
  * 
  */
 public class TorrentInfo {
-	
 
 	/**
 	 * A byte array containing the raw bytes of the torrent metainfo file.
@@ -105,15 +104,16 @@ public class TorrentInfo {
 
 	public String toString() {
 		String ret = "TorrentInfo:\n";
-		
+
 		ret += "\tfilename:\t" + this.file_name + "\n";
 		ret += "\tannounce url:\t" + this.announce_url + "\n";
-		ret += "\tinfo hash:\t" + RUBTClientUtils.byteBufferToString(this.info_hash) + "\n";
+		ret += "\tinfo hash:\t"
+				+ RUBTClientUtils.byteBufferToString(this.info_hash) + "\n";
 		ret += "\tpiece length:\t" + this.piece_length + "\n";
-		
+
 		return ret;
 	}
-	
+
 	/**
 	 * Convinience wrapper for the first step of this assignment, accepting the
 	 * torrent info filename and returning the torrent info object.
@@ -134,19 +134,19 @@ public class TorrentInfo {
 			torrentFileBytes = readFile(file);
 		} catch (IOException ioe) {
 			ioe.printStackTrace();
-			//throw ioe;
+			// throw ioe;
 		}
 
 		try {
 			ti = new TorrentInfo(torrentFileBytes);
 		} catch (BencodingException be) {
 			be.printStackTrace();
-			//throw be;
+			// throw be;
 		}
 
 		return ti;
 	}
-	
+
 	/**
 	 * Convinience method for getting byte array adapted from
 	 * 
@@ -167,7 +167,7 @@ public class TorrentInfo {
 		f.close();
 		return data;
 	}
-	
+
 	/**
 	 * Creates a new TorrentInfo object from the specified byte array. If the
 	 * byte array is {@code null} or has a length of 0(zero), then an

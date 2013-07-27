@@ -30,7 +30,7 @@ public class TrackerResponse {
 	public String trackerID;
 	public int complete;
 	public int incomplete;
-	public ArrayList<Peer> peers;
+	private ArrayList<Peer> peers;
 
 	public String toString() {
 		String ret = "TrackerResponse: \n";
@@ -42,7 +42,13 @@ public class TrackerResponse {
 		ret += "\tPeers:\n";
 
 		for (int i = 0; i < peers.size(); i++) {
-			ret += "\t\t" + peers.get(i) + "\n";
+			ret += "\t\t" + peers.get(i);
+			if (peers.get(i).ip.contains(RUBTClientConstants.ACCEPTABLE_PEER_1) ||
+					peers.get(i).ip.contains(RUBTClientConstants.ACCEPTABLE_PEER_2)) {
+				ret += "\tacceptable peer";
+			}
+			
+			ret += "\n";
 		}
 
 		return ret;
@@ -181,6 +187,37 @@ public class TrackerResponse {
 		dis.close();
 
 		return retArray;
+	}
+	
+	public boolean containsPeer(String peerIP) {
+		for (int i = 0; i < peers.size(); i++) {
+			if (peers.get(i).ip.contains(peerIP)) {
+				return true;
+			}
+		}
+		
+		return false;
+	}
+	
+	public Peer getPeerAtIndex(int i) {
+		return peers.get(i);
+	}
+	
+	public int peerSize () {
+		return peers.size();
+	}
+	
+	public ArrayList<Peer> getAcceptablePeers() {
+		ArrayList<Peer> acceptablePeers = new ArrayList<Peer>(2);
+		
+		for (int i = 0; i < peerSize(); i++) {
+			if (getPeerAtIndex(i).ip.contains(RUBTClientConstants.ACCEPTABLE_PEER_1) || 
+					getPeerAtIndex(i).ip.contains(RUBTClientConstants.ACCEPTABLE_PEER_2)) {
+				acceptablePeers.add(getPeerAtIndex(i));
+			}
+		}
+		
+		return acceptablePeers;
 	}
 
 }
