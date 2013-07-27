@@ -200,7 +200,6 @@ public class RUBTClient {
 		dis.close();
 
 		return retArray;
-
 	}
 
 	public static String toHexString(byte[] bytes) {
