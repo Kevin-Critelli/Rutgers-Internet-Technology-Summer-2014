@@ -71,33 +71,33 @@ public class TrackerResponse {
 
 		HashMap<ByteBuffer, Object> response = (HashMap<ByteBuffer, Object>) o;
 
-		if (response.containsKey(RUBTClientConstants.TR_KEY_FAILURE)) {
+		if (response.containsKey(RUBTClientConstants.TRACKER_RESPONSE_KEY_FAILURE)) {
 			// throw new Exception("Tracker failed");
 		}
 
-		if (response.containsKey(RUBTClientConstants.TR_KEY_INTERVAL))
-			this.interval = (Integer) response.get(RUBTClientConstants.TR_KEY_INTERVAL);
+		if (response.containsKey(RUBTClientConstants.TRACKER_RESPONSE_KEY_INTERVAL))
+			this.interval = (Integer) response.get(RUBTClientConstants.TRACKER_RESPONSE_KEY_INTERVAL);
 		else {
 			System.out.println("Warning: no interval, setting to zero");
 			this.interval = 0;
 		}
 
-		if (response.containsKey(RUBTClientConstants.TR_KEY_COMPLETE))
-			this.complete = (Integer) response.get(RUBTClientConstants.TR_KEY_COMPLETE);
+		if (response.containsKey(RUBTClientConstants.TRACKER_RESPONSE_KEY_COMPLETE))
+			this.complete = (Integer) response.get(RUBTClientConstants.TRACKER_RESPONSE_KEY_COMPLETE);
 		else {
 			System.out.println("Warning: no complete, setting to zero");
 			this.complete = 0;
 		}
 
-		if (response.containsKey(RUBTClientConstants.TR_KEY_INCOMPLETE))
-			this.incomplete = (Integer) response.get(RUBTClientConstants.TR_KEY_INCOMPLETE);
+		if (response.containsKey(RUBTClientConstants.TRACKER_RESPONSE_KEY_INCOMPLETE))
+			this.incomplete = (Integer) response.get(RUBTClientConstants.TRACKER_RESPONSE_KEY_INCOMPLETE);
 		else {
 			System.out.println("Warning: no incomplete, setting to zero");
 			this.incomplete = 0;
 		}
 
-		if (response.containsKey(RUBTClientConstants.TR_KEY_MIN_INTERVAL))
-			this.minimumInterval = (Integer) response.get(RUBTClientConstants.TR_KEY_MIN_INTERVAL);
+		if (response.containsKey(RUBTClientConstants.TRACKER_RESPONSE_KEY_MIN_INTERVAL))
+			this.minimumInterval = (Integer) response.get(RUBTClientConstants.TRACKER_RESPONSE_KEY_MIN_INTERVAL);
 		else {
 			System.out.println("Warning: no minimum interval, setting to zero");
 			this.minimumInterval = 0;
@@ -105,7 +105,7 @@ public class TrackerResponse {
 
 		// System.out.println(Bencoder2.getInfoBytes(o.array()));
 
-		ByteBuffer peersResponse = (ByteBuffer) response.get(RUBTClientConstants.TR_KEY_PEERS);
+		ByteBuffer peersResponse = (ByteBuffer) response.get(RUBTClientConstants.TRACKER_RESPONSE_KEY_PEERS);
 		this.peers = new ArrayList<Peer>();
 
 		for (int i = 0; i < 33; i++) {
@@ -163,12 +163,12 @@ public class TrackerResponse {
 
 		String newURL = announceURL.toString();
 
-		newURL += "?" + RUBTClientConstants.TR_KEY_INFO_HASH + "=" + info_hash
-				+ "&" + RUBTClientConstants.TR_KEY_PEER_ID + "=" + peer_id
-				+ "&" + RUBTClientConstants.TR_KEY_PORT + "=" + port + "&"
-				+ RUBTClientConstants.TR_KEY_UPLOADED + "=" + uploaded + "&"
-				+ RUBTClientConstants.TR_KEY_DOWNLOADED + "=" + downloaded
-				+ "&" + RUBTClientConstants.TR_KEY_LEFT + "=" + left;
+		newURL += "?" + RUBTClientConstants.TRACKER_RESPONSE_KEY_INFO_HASH + "=" + info_hash
+				+ "&" + RUBTClientConstants.TRACKER_RESPONSE_KEY_PEER_ID + "=" + peer_id
+				+ "&" + RUBTClientConstants.TRACKER_RESPONSE_KEY_PORT + "=" + port + "&"
+				+ RUBTClientConstants.TRACKER_RESPONSE_KEY_UPLOADED + "=" + uploaded + "&"
+				+ RUBTClientConstants.TRACKER_RESPONSE_KEY_DOWNLOADED + "=" + downloaded
+				+ "&" + RUBTClientConstants.TRACKER_RESPONSE_KEY_LEFT + "=" + left;
 
 		HttpURLConnection huc = (HttpURLConnection) new URL(newURL)
 				.openConnection();

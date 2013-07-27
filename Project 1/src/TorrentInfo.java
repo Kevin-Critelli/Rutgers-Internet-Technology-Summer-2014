@@ -192,7 +192,7 @@ public class TorrentInfo {
 
 		// Try to extract the announce URL
 		ByteBuffer url_buff = (ByteBuffer) this.torrent_file_map
-				.get(RUBTClientConstants.KEY_ANNOUNCE);
+				.get(RUBTClientConstants.TRACKER_INFO_KEY_ANNOUNCE);
 		if (url_buff == null)
 			throw new BencodingException(
 					"Could not retrieve anounce URL from torrent metainfo. Corrupt file?");
@@ -210,7 +210,7 @@ public class TorrentInfo {
 		// Try to extract the info dictionary
 		ByteBuffer info_bytes = Bencoder2.getInfoBytes(torrent_file_bytes);
 		Map<ByteBuffer, Object> info_map = (Map<ByteBuffer, Object>) this.torrent_file_map
-				.get(RUBTClientConstants.KEY_INFO);
+				.get(RUBTClientConstants.TRACKER_INFO_KEY_INFO);
 
 		if (info_map == null)
 			throw new BencodingException(
@@ -229,7 +229,7 @@ public class TorrentInfo {
 
 		// Extract the piece length from the info dictionary
 		Integer piece_length = (Integer) this.info_map
-				.get(RUBTClientConstants.KEY_PIECE_LENGTH);
+				.get(RUBTClientConstants.TRACKER_INFO_KEY_PIECE_LENGTH);
 		if (piece_length == null)
 			throw new BencodingException(
 					"Could not extract piece length from info dictionary. Corrupt file?");
@@ -237,7 +237,7 @@ public class TorrentInfo {
 
 		// Extract the file name from the info dictionary
 		ByteBuffer name_bytes = (ByteBuffer) this.info_map
-				.get(RUBTClientConstants.KEY_NAME);
+				.get(RUBTClientConstants.TRACKER_INFO_KEY_NAME);
 		if (name_bytes == null)
 			throw new BencodingException(
 					"Could not retrieve file name from info dictionary. Corrupt file?");
@@ -249,7 +249,7 @@ public class TorrentInfo {
 
 		// Extract the file length from the info dictionary
 		Integer file_length = (Integer) this.info_map
-				.get(RUBTClientConstants.KEY_LENGTH);
+				.get(RUBTClientConstants.TRACKER_INFO_KEY_LENGTH);
 		if (file_length == null)
 			throw new BencodingException(
 					"Could not extract file length from info dictionary. Corrupt file?");
@@ -257,7 +257,7 @@ public class TorrentInfo {
 
 		// Extract the piece hashes from the info dictionary
 		ByteBuffer all_hashes = (ByteBuffer) this.info_map
-				.get(RUBTClientConstants.KEY_PIECES);
+				.get(RUBTClientConstants.TRACKER_INFO_KEY_PIECES);
 		if (all_hashes == null)
 			throw new BencodingException(
 					"Could not extract piece hashes from info dictionary. Corrupt file?");
