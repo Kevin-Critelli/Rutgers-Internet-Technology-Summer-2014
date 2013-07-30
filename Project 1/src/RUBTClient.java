@@ -21,12 +21,14 @@ public class RUBTClient {
 	public static int downloaded = 0;
 	public static int uploaded = 0;
 	public static TorrentInfo torrentInfo = null;
+	public static TrackerResponse trackerResponse = null;
 
 	/**
 	 * @param args
+	 * @throws InterruptedException 
 	 */
 
-	public static void main(String[] args) {
+	public static void main(String[] args) throws InterruptedException {
 
 		/**
 		 * 1. Take as a command-line argument the name of the .torrent file to
@@ -65,7 +67,7 @@ public class RUBTClient {
 		 * 
 		 */
 
-		TrackerResponse trackerResponse = new TrackerResponse(torrentInfo);
+		trackerResponse = new TrackerResponse(torrentInfo);
 
 		if (RUBTClientConstants.DEVELOP) {
 			System.out.println(trackerResponse);
@@ -118,13 +120,14 @@ public class RUBTClient {
 			new Thread(p).start();
 		}
 
+		TrackerThread t = new TrackerThread();
+		Thread tt = new Thread(t);
+		
+		
+		
 		while (!check()) {
-		} // makes sure we have all pieces before writing to file
-
-		// create FrontDoor object (richie) -->> for uploading to peers who want
-		// our pieces
-
-		/** Writes data to output file **/
+			tt.run();
+		}
 
 		try {
 			// save file

@@ -203,7 +203,7 @@ public class TrackerResponse {
 		
 		String port = "" + 6883; // port
 
-		String newURL = this.announceURL;
+		String newURL = "http://128.6.171.2:6969/announce";
 		
 		newURL += "?" + RUBTClientConstants.TRACKER_RESPONSE_KEY_INFO_HASH + "=" + info_hash
 				+ "&" + RUBTClientConstants.TRACKER_RESPONSE_KEY_PEER_ID + "=" + peer_id
