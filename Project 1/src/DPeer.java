@@ -111,10 +111,6 @@ public class DPeer extends RUBTClient implements Runnable {
 		if(readMessage() ==  1){ din.readByte();}						/*unchoked*/
 		else{}															/*no unchoke message*/
 
-		dout.write(interestedMessage.message);
-		dout.flush();
-		socket.setSoTimeout(130000);
-
 		dif = this.torrentInfo.piece_hashes.length - 1;
 		lastPieceSize = this.torrentInfo.file_length - (dif * this.torrentInfo.piece_length);
 
