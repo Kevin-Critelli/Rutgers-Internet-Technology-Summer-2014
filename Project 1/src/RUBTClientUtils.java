@@ -36,4 +36,37 @@ public class RUBTClientUtils {
 
 		return s;
 	}
+	
+	/**
+	 * Converts a 4 byte Big-Endian Hex Value to an int
+	 * 
+	 * @author Kevin Critelli
+	 * 
+	 * @param bytes
+	 *            The byte array representing the number
+	 * @return int returns an int representation of the byte array
+	 * */
+
+	public static final int byteArrayToInt(byte[] bytes) {
+		return java.nio.ByteBuffer.wrap(bytes).getInt();
+	}
+	
+	/**
+	 * Converts an integer value to a 4 byte Big-Endian Hex Value
+	 * 
+	 * @author Kevin Critelli
+	 * 
+	 * @param value
+	 *            The Integer to change into 4 byte Big-Endian Hex
+	 * @return byte[] A Byte array of size 4 containing the four Hex values
+	 */
+
+	public static byte[] intToByteArray(int value) {
+		byte[] retVal = new byte[4];
+		retVal[0] = (byte) (value >> 24);
+		retVal[1] = (byte) (value >> 16);
+		retVal[2] = (byte) (value >> 8);
+		retVal[3] = (byte) (value);
+		return retVal;
+	}
 }

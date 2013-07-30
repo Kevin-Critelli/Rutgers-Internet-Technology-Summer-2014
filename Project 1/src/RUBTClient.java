@@ -2,6 +2,7 @@ import java.util.ArrayList;
 import java.net.*;
 import java.io.*;
 import java.nio.ByteBuffer;
+
 /**
  * @author pauljones
  * 
@@ -11,20 +12,20 @@ import java.nio.ByteBuffer;
  *         hard work to classes.
  * 
  */
- 
+
 public class RUBTClient {
 
 	public static ByteBuffer[] pieces = null;
-	public static boolean [] requests = null;
-	public static boolean [] have = null;
+	public static boolean[] requests = null;
+	public static boolean[] have = null;
 	public static int downloaded = 0;
 	public static int uploaded = 0;
 	public static TorrentInfo torrentInfo = null;
-	
+
 	/**
 	 * @param args
 	 */
-	 
+
 	public static void main(String[] args) {
 
 		/**
@@ -43,7 +44,7 @@ public class RUBTClient {
 
 		String torrentFile = simargs[0];
 		String outputFile = simargs[1];
-		
+
 		String ipString;
 		int i;
 
@@ -69,7 +70,7 @@ public class RUBTClient {
 		if (RUBTClientConstants.DEVELOP) {
 			System.out.println(trackerResponse);
 		}
-		
+
 		/**
 		 * 6. Capture the response from the tracker and decode it in order to
 		 * get the list of peers. From this list of peers, use only the peers
@@ -77,79 +78,74 @@ public class RUBTClient {
 		 * addresses from the list, hard-coding it is not acceptable, except the
 		 * comparison itself.
 		 */
-		
+
 		ArrayList<Peer> peers = trackerResponse.getAcceptablePeers();
-		
+
 		if (RUBTClientConstants.DEVELOP) {
 			System.out.println("Acceptable peers:");
-			
+
 			for (i = 0; i < peers.size(); i++) {
 				System.out.println("\t" + peers.get(i));
 			}
 		}
-		
-		/**Initalized variables **/
-		
+
+		/** Initalized variables **/
+
 		pieces = new ByteBuffer[torrentInfo.piece_hashes.length];
 		requests = new boolean[torrentInfo.piece_hashes.length];
 		have = new boolean[torrentInfo.piece_hashes.length];
-		
-		for(i=0;i<have.length;i++){
+
+		for (i = 0; i < have.length; i++) {
 			have[i] = false;
 		}
-		
-		for(i=0;i<requests.length;i++){
+
+		for (i = 0; i < requests.length; i++) {
 			requests[i] = false;
 		}
-		
-		/**Create download peer objects (threads) for each valid peer to download from our list**/
-		
-		//add richies ip to peers @ip 192.168.1.3 @port 5100
-		//peers.add(new Peer(5100, "192.168.1.3"));
-		
-		//create x peers
-		for(i=0;i<peers.size();i++){
+
+		/**
+		 * Create download peer objects (threads) for each valid peer to
+		 * download from our list
+		 **/
+
+		// add richies ip to peers @ip 192.168.1.3 @port 5100
+		// peers.add(new Peer(5100, "192.168.1.3"));
+
+		// create x peers
+		for (i = 0; i < peers.size(); i++) {
 			ipString = peers.get(i).ip.replaceAll(":", ".");
 			DPeer p = new DPeer(ipString, peers.get(i).port);
 			new Thread(p).start();
 		}
-		
-		while(!check()){} //makes sure we have all pieces before writing to file
-		
-		//create FrontDoor object (richie) -->> for uploading to peers who want our pieces
-		
-		/**Writes data to output file **/
-		
-		try{
-			//save file
-			FileOutputStream fileoutput = new FileOutputStream(new File("picture.jpg"));
-			for(i=0;i<pieces.length;i++){
-				byte [] array = pieces[i].array();	
+
+		while (!check()) {
+		} // makes sure we have all pieces before writing to file
+
+		// create FrontDoor object (richie) -->> for uploading to peers who want
+		// our pieces
+
+		/** Writes data to output file **/
+
+		try {
+			// save file
+			FileOutputStream fileoutput = new FileOutputStream(new File(
+					simargs[1]));
+			for (i = 0; i < pieces.length; i++) {
+				byte[] array = pieces[i].array();
 				fileoutput.write(pieces[i].array());
 			}
-		}catch(Exception e){
+		} catch (Exception e) {
 			System.out.println("exception thrown writing to file");
 		}
 	}
-	
-	public static boolean check(){
+
+	public static boolean check() {
 		int i;
-		for(i=0;i<have.length;i++){
-			if(have[i] != true){
+		for (i = 0; i < have.length; i++) {
+			if (have[i] != true) {
 				return false;
 			}
 		}
 		return true;
 	}
 }
-
-
-
-
-
-
-
-
-
-
-
