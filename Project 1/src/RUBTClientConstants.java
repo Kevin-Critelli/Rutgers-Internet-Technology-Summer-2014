@@ -27,5 +27,22 @@ public class RUBTClientConstants {
 	
 	public final static String ACCEPTABLE_PEER_1 = "128:6:171:3";
 	public final static String ACCEPTABLE_PEER_2 = "128:6:171:4";
-	public final static byte[] peerid = {'p','a','u','l','k','e','v','i','n','r','i','t','c','h','i','e','c','s','$','$'};		//peer id																					
+	public final static byte[] peerid = {'p','a','u','l','k','e','v','i','n','r','i','t','c','h','i','e','c','s','$','$'};	
+	
+	public static final byte MESSAGE_TYPE_KEEP_ALIVE = -1;
+	public static final byte MESSAGE_TYPE_CHOKE = 0;
+	public static final byte MESSAGE_TYPE_UNCHOKE = 1;
+	public static final byte MESSAGE_TYPE_INTERESTED = 2;
+	public static final byte MESSAGE_TYPE_NOT_INTERESTED = 3;
+	public static final byte MESSAGE_TYPE_HAVE = 4;
+	public static final byte MESSAGE_TYPE_BITFIELD = 5;
+	public static final byte MESSAGE_TYPE_REQUEST = 6;
+	public static final byte MESSAGE_TYPE_PIECE = 7;
+	public static final byte MESSAGE_TYPE_CANCEL = 8;
+	public static final byte MESSAGE_TYPE_HANDSHAKE = 9;
+	
+	public static byte[] PROTOCOL_STRING = new byte[] { 'B', 'i', 't', 'T',
+			'o', 'r', 'r', 'e', 'n', 't', ' ', 'p', 'r', 'o', 't', 'o', 'c',
+			'o', 'l' };
+
 }

@@ -69,57 +69,6 @@ public class Message {
 	 ** 
 	 *******************************************************************************************************/
 
-	/** Keep-Alive message ID Field **/
-
-	public static final byte MSG_TYPE_KEEP_ALIVE = -1;
-
-	/** Choke Message ID Field **/
-
-	public static final byte MSG_TYPE_CHOKE = 0;
-
-	/** Unchoke Message ID Field **/
-
-	public static final byte MSG_TYPE_UNCHOKE = 1;
-
-	/** Interested Message ID Field **/
-
-	public static final byte MSG_TYPE_INTERESTED = 2;
-
-	/** Not Interested Message ID Field **/
-
-	public static final byte MSG_TYPE_NOT_INTERESTED = 3;
-
-	/** Have Message ID Field **/
-
-	public static final byte MSG_TYPE_HAVE = 4;
-
-	/** BitField Message ID Field **/
-
-	public static final byte MSG_TYPE_BITFIELD = 5;
-
-	/** Request Message ID Field **/
-
-	public static final byte MSG_TYPE_REQUEST = 6;
-
-	/** Piece Message ID Field **/
-
-	public static final byte MSG_TYPE_PIECE = 7;
-
-	/** Cancel Message ID Field **/
-
-	public static final byte MSG_TYPE_CANCEL = 8;
-
-	/** Handshake Message ID Field **/
-
-	public static final byte MSG_TYPE_HANDSHAKE = 9;
-
-	/** Protocol String for Handshake Message **/
-
-	/** Make some of these variables private ??? **/
-
-	public static byte[] PROTOCOL_STRING = new byte[] { 'B', 'i', 't', 'T',
-			'o', 'r', 'r', 'e', 'n', 't', ' ', 'p', 'r', 'o', 't', 'o', 'c',
-			'o', 'l' };
 
 	public final int lengthPrefix;
 	public final byte id;
@@ -133,12 +82,12 @@ public class Message {
 	public Message(byte[] info_hash, byte[] peerid) {
 
 		this.lengthPrefix = 0;
-		this.id = MSG_TYPE_HANDSHAKE;
+		this.id = RUBTClientConstants.MESSAGE_TYPE_HANDSHAKE;
 		this.message = new byte[68];
 		this.message[0] = (byte) 19;
 		this.info_hash = info_hash;
 		this.peerid = peerid;
-		System.arraycopy(PROTOCOL_STRING, 0, this.message, 1, 19);
+		System.arraycopy(RUBTClientConstants.PROTOCOL_STRING, 0, this.message, 1, 19);
 		System.arraycopy(info_hash, 0, this.message, 28, 20);
 		System.arraycopy(peerid, 0, this.message, 48, 20);
 	}
@@ -151,29 +100,29 @@ public class Message {
 		this.lengthPrefix = lengthPre;
 		this.message = new byte[this.lengthPrefix + 4];
 
-		if (id == MSG_TYPE_CHOKE) {
+		if (id == RUBTClientConstants.MESSAGE_TYPE_CHOKE) {
 			System.arraycopy(RUBTClientUtils.intToByteArray(1), 0, this.message, 0, 4);
 			this.message[4] = (byte) 0;
-		} else if (id == MSG_TYPE_UNCHOKE) {
+		} else if (id == RUBTClientConstants.MESSAGE_TYPE_UNCHOKE) {
 			System.arraycopy(RUBTClientUtils.intToByteArray(1), 0, this.message, 0, 4);
 			this.message[4] = (byte) 1;
-		} else if (id == MSG_TYPE_INTERESTED) {
+		} else if (id == RUBTClientConstants.MESSAGE_TYPE_INTERESTED) {
 			System.arraycopy(RUBTClientUtils.intToByteArray(1), 0, this.message, 0, 4);
 			this.message[4] = (byte) 2;
-		} else if (id == MSG_TYPE_NOT_INTERESTED) {
+		} else if (id == RUBTClientConstants.MESSAGE_TYPE_NOT_INTERESTED) {
 			System.arraycopy(RUBTClientUtils.intToByteArray(1), 0, this.message, 0, 4);
 			this.message[4] = (byte) 3;
-		} else if (id == MSG_TYPE_HAVE) {
+		} else if (id == RUBTClientConstants.MESSAGE_TYPE_HAVE) {
 			System.arraycopy(RUBTClientUtils.intToByteArray(5), 0, this.message, 0, 4);
 			this.message[4] = (byte) 4;
-		} else if (id == MSG_TYPE_REQUEST) {
+		} else if (id == RUBTClientConstants.MESSAGE_TYPE_REQUEST) {
 			System.arraycopy(RUBTClientUtils.intToByteArray(13), 0, this.message, 0, 4);
 			this.message[4] = (byte) 6;
-		} else if (id == MSG_TYPE_PIECE) {
+		} else if (id == RUBTClientConstants.MESSAGE_TYPE_PIECE) {
 			System.arraycopy(RUBTClientUtils.intToByteArray(this.lengthPrefix), 0,
 					this.message, 0, 4);
 			this.message[4] = (byte) 7;
-		} else if (id == MSG_TYPE_KEEP_ALIVE) {
+		} else if (id == RUBTClientConstants.MESSAGE_TYPE_KEEP_ALIVE) {
 			// no id
 		}
 	}
@@ -190,14 +139,14 @@ public class Message {
 
 	public byte[] getPayload() throws Exception {
 		byte[] payload = null;
-		if (id == MSG_TYPE_HAVE || id == MSG_TYPE_REQUEST
-				|| id == MSG_TYPE_PIECE) {
-			if (id == MSG_TYPE_HAVE) {
+		if (id == RUBTClientConstants.MESSAGE_TYPE_HAVE || id == RUBTClientConstants.MESSAGE_TYPE_REQUEST
+				|| id == RUBTClientConstants.MESSAGE_TYPE_PIECE) {
+			if (id == RUBTClientConstants.MESSAGE_TYPE_HAVE) {
 				payload = new byte[4];
 				System.arraycopy(this.message, 5, payload, 0, 4);
 				return payload;
 
-			} else if (id == MSG_TYPE_PIECE) {
+			} else if (id == RUBTClientConstants.MESSAGE_TYPE_PIECE) {
 				payload = new byte[this.lengthPrefix - 1];
 				System.arraycopy(this.message, 5, payload, 0,
 						this.lengthPrefix - 1);
@@ -235,9 +184,9 @@ public class Message {
 	public void setPayload(byte[] pieceBlock, int pieceBegin, int pieceIndex,
 			int requestLength, int requestBegin, int requestIndex,
 			int havePayload) {
-		if (id == MSG_TYPE_HAVE) {
+		if (id == RUBTClientConstants.MESSAGE_TYPE_HAVE) {
 			System.arraycopy(RUBTClientUtils.intToByteArray(havePayload), 0, this.message, 5, 4);
-		} else if (id == MSG_TYPE_PIECE) {
+		} else if (id == RUBTClientConstants.MESSAGE_TYPE_PIECE) {
 			this.piece = pieceBlock;
 			System.arraycopy(RUBTClientUtils.intToByteArray(pieceIndex), 0, this.message, 5, 4); // set
 																					// index
@@ -248,7 +197,7 @@ public class Message {
 			System.arraycopy(pieceBlock, 0, this.message, 13,
 					this.lengthPrefix - 9); // set bock payload
 
-		} else if (id == MSG_TYPE_REQUEST) {
+		} else if (id == RUBTClientConstants.MESSAGE_TYPE_REQUEST) {
 			System.arraycopy(RUBTClientUtils.intToByteArray(requestIndex), 0, this.message, 5,
 					4); // set index payload
 			System.arraycopy(RUBTClientUtils.intToByteArray(requestBegin), 0, this.message, 9,
@@ -272,16 +221,16 @@ public class Message {
 	public String toString() {
 		String result = null;
 		switch (this.id) {
-		case MSG_TYPE_BITFIELD:
+		case RUBTClientConstants.MESSAGE_TYPE_BITFIELD:
 			result = "BitField Message";
 			break;
-		case MSG_TYPE_CANCEL:
+		case RUBTClientConstants.MESSAGE_TYPE_CANCEL:
 			result = "Cancel Message";
 			break;
-		case MSG_TYPE_CHOKE:
+		case RUBTClientConstants.MESSAGE_TYPE_CHOKE:
 			result = "Choke Message";
 			break;
-		case MSG_TYPE_HANDSHAKE:
+		case RUBTClientConstants.MESSAGE_TYPE_HANDSHAKE:
 			result = "Handshake Mesesage";
 			System.out.print("Protocol ");
 			for (int i = 0; i < 20; i++) {
@@ -301,19 +250,19 @@ public class Message {
 			}
 			System.out.println();
 			break;
-		case MSG_TYPE_HAVE:
+		case RUBTClientConstants.MESSAGE_TYPE_HAVE:
 			result = "Have Message";
 			break;
-		case MSG_TYPE_INTERESTED:
+		case RUBTClientConstants.MESSAGE_TYPE_INTERESTED:
 			result = "Interested Message";
 			break;
-		case MSG_TYPE_KEEP_ALIVE:
+		case RUBTClientConstants.MESSAGE_TYPE_KEEP_ALIVE:
 			result = "Keep-Alive Message";
 			break;
-		case MSG_TYPE_NOT_INTERESTED:
+		case RUBTClientConstants.MESSAGE_TYPE_NOT_INTERESTED:
 			result = "Not Interested Message";
 			break;
-		case MSG_TYPE_PIECE:
+		case RUBTClientConstants.MESSAGE_TYPE_PIECE:
 			result = "Piece Message";
 			System.out.print("block ");
 			for (int i = 0; i < this.piece.length; i++) {
@@ -321,10 +270,10 @@ public class Message {
 			}
 			System.out.println();
 			break;
-		case MSG_TYPE_REQUEST:
+		case RUBTClientConstants.MESSAGE_TYPE_REQUEST:
 			result = "Request Message";
 			break;
-		case MSG_TYPE_UNCHOKE:
+		case RUBTClientConstants.MESSAGE_TYPE_UNCHOKE:
 			result = "Unchoke Message";
 			break;
 		}
