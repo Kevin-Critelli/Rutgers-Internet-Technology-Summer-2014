@@ -129,7 +129,7 @@ public class RUBTClient {
 		try {
 			// save file
 			FileOutputStream fileoutput = new FileOutputStream(new File(
-					"picture.jpg"));
+					simargs[1]));
 			for (i = 0; i < pieces.length; i++) {
 				byte[] array = pieces[i].array();
 				fileoutput.write(pieces[i].array());

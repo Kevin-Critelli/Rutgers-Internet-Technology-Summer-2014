@@ -152,25 +152,25 @@ public class Message {
 		this.message = new byte[this.lengthPrefix + 4];
 
 		if (id == MSG_TYPE_CHOKE) {
-			System.arraycopy(intToByteArray(1), 0, this.message, 0, 4);
+			System.arraycopy(RUBTClientUtils.intToByteArray(1), 0, this.message, 0, 4);
 			this.message[4] = (byte) 0;
 		} else if (id == MSG_TYPE_UNCHOKE) {
-			System.arraycopy(intToByteArray(1), 0, this.message, 0, 4);
+			System.arraycopy(RUBTClientUtils.intToByteArray(1), 0, this.message, 0, 4);
 			this.message[4] = (byte) 1;
 		} else if (id == MSG_TYPE_INTERESTED) {
-			System.arraycopy(intToByteArray(1), 0, this.message, 0, 4);
+			System.arraycopy(RUBTClientUtils.intToByteArray(1), 0, this.message, 0, 4);
 			this.message[4] = (byte) 2;
 		} else if (id == MSG_TYPE_NOT_INTERESTED) {
-			System.arraycopy(intToByteArray(1), 0, this.message, 0, 4);
+			System.arraycopy(RUBTClientUtils.intToByteArray(1), 0, this.message, 0, 4);
 			this.message[4] = (byte) 3;
 		} else if (id == MSG_TYPE_HAVE) {
-			System.arraycopy(intToByteArray(5), 0, this.message, 0, 4);
+			System.arraycopy(RUBTClientUtils.intToByteArray(5), 0, this.message, 0, 4);
 			this.message[4] = (byte) 4;
 		} else if (id == MSG_TYPE_REQUEST) {
-			System.arraycopy(intToByteArray(13), 0, this.message, 0, 4);
+			System.arraycopy(RUBTClientUtils.intToByteArray(13), 0, this.message, 0, 4);
 			this.message[4] = (byte) 6;
 		} else if (id == MSG_TYPE_PIECE) {
-			System.arraycopy(intToByteArray(this.lengthPrefix), 0,
+			System.arraycopy(RUBTClientUtils.intToByteArray(this.lengthPrefix), 0,
 					this.message, 0, 4);
 			this.message[4] = (byte) 7;
 		} else if (id == MSG_TYPE_KEEP_ALIVE) {
@@ -236,24 +236,24 @@ public class Message {
 			int requestLength, int requestBegin, int requestIndex,
 			int havePayload) {
 		if (id == MSG_TYPE_HAVE) {
-			System.arraycopy(intToByteArray(havePayload), 0, this.message, 5, 4);
+			System.arraycopy(RUBTClientUtils.intToByteArray(havePayload), 0, this.message, 5, 4);
 		} else if (id == MSG_TYPE_PIECE) {
 			this.piece = pieceBlock;
-			System.arraycopy(intToByteArray(pieceIndex), 0, this.message, 5, 4); // set
+			System.arraycopy(RUBTClientUtils.intToByteArray(pieceIndex), 0, this.message, 5, 4); // set
 																					// index
 																					// payload
-			System.arraycopy(intToByteArray(pieceBegin), 0, this.message, 9, 4); // set
+			System.arraycopy(RUBTClientUtils.intToByteArray(pieceBegin), 0, this.message, 9, 4); // set
 																					// begin
 																					// payload
 			System.arraycopy(pieceBlock, 0, this.message, 13,
 					this.lengthPrefix - 9); // set bock payload
 
 		} else if (id == MSG_TYPE_REQUEST) {
-			System.arraycopy(intToByteArray(requestIndex), 0, this.message, 5,
+			System.arraycopy(RUBTClientUtils.intToByteArray(requestIndex), 0, this.message, 5,
 					4); // set index payload
-			System.arraycopy(intToByteArray(requestBegin), 0, this.message, 9,
+			System.arraycopy(RUBTClientUtils.intToByteArray(requestBegin), 0, this.message, 9,
 					4); // set begin payload
-			System.arraycopy(intToByteArray(requestLength), 0, this.message,
+			System.arraycopy(RUBTClientUtils.intToByteArray(requestLength), 0, this.message,
 					13, 4); // set length payload
 
 		} else {
@@ -262,39 +262,6 @@ public class Message {
 			return;
 		}
 		return;
-	}
-
-	/**
-	 * Converts a 4 byte Big-Endian Hex Value to an int
-	 * 
-	 * @author Kevin Critelli
-	 * 
-	 * @param bytes
-	 *            The byte array representing the number
-	 * @return int returns an int representation of the byte array
-	 * */
-
-	public static final int byteArrayToInt(byte[] bytes) {
-		return java.nio.ByteBuffer.wrap(bytes).getInt();
-	}
-
-	/**
-	 * Converts an integer value to a 4 byte Big-Endian Hex Value
-	 * 
-	 * @author Kevin Critelli
-	 * 
-	 * @param value
-	 *            The Integer to change into 4 byte Big-Endian Hex
-	 * @return byte[] A Byte array of size 4 containing the four Hex values
-	 */
-
-	public static byte[] intToByteArray(int value) {
-		byte[] retVal = new byte[4];
-		retVal[0] = (byte) (value >> 24);
-		retVal[1] = (byte) (value >> 16);
-		retVal[2] = (byte) (value >> 8);
-		retVal[3] = (byte) (value);
-		return retVal;
 	}
 
 	/**
@@ -348,8 +315,6 @@ public class Message {
 			break;
 		case MSG_TYPE_PIECE:
 			result = "Piece Message";
-			System.out.println("index " + byteArrayToInt(intToByteArray(6)));
-			System.out.println("begin " + byteArrayToInt(intToByteArray(2)));
 			System.out.print("block ");
 			for (int i = 0; i < this.piece.length; i++) {
 				System.out.print(this.piece[i]);
