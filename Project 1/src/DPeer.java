@@ -35,16 +35,9 @@ public class DPeer extends RUBTClient implements Runnable {
 	 * @param port
 	 *            int value of the port to connect to for this peer
 	 * */
-
-<<<<<<< HEAD
-	public DPeer(String ip, int port){
-		
-		try{
-=======
+	 
 	public DPeer(String ip, int port) {
-
 		try {
->>>>>>> 7e119391cbea78cd95c8431c58dfbf07714f18ea
 			this.port = port;
 			this.ip = ip;
 			socket = new Socket(ip, port);
@@ -105,7 +98,6 @@ public class DPeer extends RUBTClient implements Runnable {
 		int numPieces = 0;
 		int begin = 0;
 		byte[] buf = null;
-<<<<<<< HEAD
 		
 		//Read Response from handshake, potential bit field
 		if(readMessage() == 5){}										/*bit field message*/
@@ -118,43 +110,20 @@ public class DPeer extends RUBTClient implements Runnable {
 		
 		if(readMessage() ==  1){ din.readByte();}						/*unchoked*/
 		else{}															/*no unchoke message*/
-		
-=======
-
-		// bit field
-		for (i = 0; i < 6; i++) {
-			if (i == 5) {
-				din.readByte();
-				break;
-			}
-			din.readByte();
-		}
 
 		dout.write(interestedMessage.message);
 		dout.flush();
 		socket.setSoTimeout(130000);
 
-		// grab response from interest
-		for (i = 0; i < 5; i++) {
-			if (i == 4) {
-				if (din.readByte() == 1) {
-					// unchoked
-					break;
-				}
-			}
-			din.readByte();
-		}
-
->>>>>>> 7e119391cbea78cd95c8431c58dfbf07714f18ea
 		dif = this.torrentInfo.piece_hashes.length - 1;
-		lastPieceSize = this.torrentInfo.file_length
-				- (dif * this.torrentInfo.piece_length);
+		lastPieceSize = this.torrentInfo.file_length - (dif * this.torrentInfo.piece_length);
 
 		// READY TO EXCHANGE DATA
 		// loop until we have each piece
 		while (numPieces != this.torrentInfo.piece_hashes.length) {
 			// loop until we have each subset of data to make up the piece
 			while (true) {
+				//this block is for the last piece which is variable size
 				if (numPieces + 1 == this.torrentInfo.piece_hashes.length) {
 
 					if (this.requests[numPieces] == true
@@ -162,16 +131,9 @@ public class DPeer extends RUBTClient implements Runnable {
 						// already have last piece
 						numPieces++;
 						break;
-<<<<<<< HEAD
 					}else{
-						//This loop is for grabbing the last piece, it is a variable size
-						while(true){
-							
-=======
-					} else {
 						while (true) {
 
->>>>>>> 7e119391cbea78cd95c8431c58dfbf07714f18ea
 							this.requests[numPieces] = true;
 							request = new Message(13, (byte) 6);
 
@@ -182,8 +144,7 @@ public class DPeer extends RUBTClient implements Runnable {
 							}
 
 							lastPieceSize = lastPieceSize - 16384;
-							request.setPayload(null, -1, -1, count, begin,
-									numPieces, -1);
+							request.setPayload(null, -1, -1, count, begin,numPieces, -1);
 							dout.write(request.message);
 							dout.flush();
 							socket.setSoTimeout(130000);
@@ -210,7 +171,6 @@ public class DPeer extends RUBTClient implements Runnable {
 						break;
 					}
 				} else {
-<<<<<<< HEAD
 						//this else block is for pieces that are fixed size ie everything but the last piece
 						if(this.requests[numPieces] == true && this.have[numPieces] == true){
 							//we have the piece already
@@ -218,7 +178,6 @@ public class DPeer extends RUBTClient implements Runnable {
 							break;
 						}else{
 							while(true){
-								
 								this.requests[numPieces] = true;
 								request = new Message(13, (byte) 6);
 								request.setPayload(null, -1, -1, 16384, begin, numPieces,-1);
@@ -247,59 +206,13 @@ public class DPeer extends RUBTClient implements Runnable {
 									begin += 16384;
 								}
 							}
-=======
-					if (this.requests[numPieces] == true
-							&& this.have[numPieces] == true) {
-						// we have the piece already
-						numPieces++;
-						break;
-					} else {
-						while (true) {
-
-							this.requests[numPieces] = true;
-							request = new Message(13, (byte) 6);
-							request.setPayload(null, -1, -1, 16384, begin,
-									numPieces, -1);
-							dout.write(request.message);
-							dout.flush();
-							socket.setSoTimeout(1300000);
-
-							buf = new byte[4];
-							for (i = 0; i < 4; i++) {
-								buf[i] = din.readByte();
-							}
-
-							pieceSubset = new byte[16384];
-
-							for (i = 0; i < 9; i++) {
-								din.readByte();
-							} // bypass bytes
-
-							for (i = 0; i < 16384; i++) {
-								pieceSubset[i] = din.readByte();
-							} // save data
-
-							this.subPieces.add(pieceSubset);
-
-							if (begin + 16384 == this.torrentInfo.piece_length) {
-								updatePieces(numPieces);
-								numPieces++;
-								begin = 0;
-								break;
-							} else {
-								begin += 16384;
-							}
 						}
->>>>>>> 7e119391cbea78cd95c8431c58dfbf07714f18ea
-						break;
-					}
+					break;
 				}
 			}
 		}
 	}
-
 	/**
-<<<<<<< HEAD
 	 * Reads a message from the data input stream and determines
 	 * what type of message it is, it returns the byte id corresponding
 	 * to the type of message it is
@@ -363,10 +276,8 @@ public class DPeer extends RUBTClient implements Runnable {
 	/**
 	 * This function updates our main array of pieces, and sets a flag in the have array
 	 * notifying other threads that we now have this piece 
-=======
 	 * This function updates our main array of pieces, and sets a flag in the
 	 * have array notifying other threads that we now have this piece
->>>>>>> 7e119391cbea78cd95c8431c58dfbf07714f18ea
 	 * 
 	 * @author Kevin Critelli
 	 * @param index
