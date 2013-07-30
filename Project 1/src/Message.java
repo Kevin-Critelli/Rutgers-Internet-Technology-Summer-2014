@@ -69,7 +69,6 @@ public class Message {
 	 ** 
 	 *******************************************************************************************************/
 
-
 	public final int lengthPrefix;
 	public final byte id;
 	public byte[] message = null;
@@ -87,7 +86,8 @@ public class Message {
 		this.message[0] = (byte) 19;
 		this.info_hash = info_hash;
 		this.peerid = peerid;
-		System.arraycopy(RUBTClientConstants.PROTOCOL_STRING, 0, this.message, 1, 19);
+		System.arraycopy(RUBTClientConstants.BIT_TORRENT_PROTOCOL, 0, this.message,
+				1, 19);
 		System.arraycopy(info_hash, 0, this.message, 28, 20);
 		System.arraycopy(peerid, 0, this.message, 48, 20);
 	}
@@ -101,26 +101,32 @@ public class Message {
 		this.message = new byte[this.lengthPrefix + 4];
 
 		if (id == RUBTClientConstants.MESSAGE_TYPE_CHOKE) {
-			System.arraycopy(RUBTClientUtils.intToByteArray(1), 0, this.message, 0, 4);
+			System.arraycopy(RUBTClientUtils.intToByteArray(1), 0,
+					this.message, 0, 4);
 			this.message[4] = (byte) 0;
 		} else if (id == RUBTClientConstants.MESSAGE_TYPE_UNCHOKE) {
-			System.arraycopy(RUBTClientUtils.intToByteArray(1), 0, this.message, 0, 4);
+			System.arraycopy(RUBTClientUtils.intToByteArray(1), 0,
+					this.message, 0, 4);
 			this.message[4] = (byte) 1;
 		} else if (id == RUBTClientConstants.MESSAGE_TYPE_INTERESTED) {
-			System.arraycopy(RUBTClientUtils.intToByteArray(1), 0, this.message, 0, 4);
+			System.arraycopy(RUBTClientUtils.intToByteArray(1), 0,
+					this.message, 0, 4);
 			this.message[4] = (byte) 2;
 		} else if (id == RUBTClientConstants.MESSAGE_TYPE_NOT_INTERESTED) {
-			System.arraycopy(RUBTClientUtils.intToByteArray(1), 0, this.message, 0, 4);
+			System.arraycopy(RUBTClientUtils.intToByteArray(1), 0,
+					this.message, 0, 4);
 			this.message[4] = (byte) 3;
 		} else if (id == RUBTClientConstants.MESSAGE_TYPE_HAVE) {
-			System.arraycopy(RUBTClientUtils.intToByteArray(5), 0, this.message, 0, 4);
+			System.arraycopy(RUBTClientUtils.intToByteArray(5), 0,
+					this.message, 0, 4);
 			this.message[4] = (byte) 4;
 		} else if (id == RUBTClientConstants.MESSAGE_TYPE_REQUEST) {
-			System.arraycopy(RUBTClientUtils.intToByteArray(13), 0, this.message, 0, 4);
+			System.arraycopy(RUBTClientUtils.intToByteArray(13), 0,
+					this.message, 0, 4);
 			this.message[4] = (byte) 6;
 		} else if (id == RUBTClientConstants.MESSAGE_TYPE_PIECE) {
-			System.arraycopy(RUBTClientUtils.intToByteArray(this.lengthPrefix), 0,
-					this.message, 0, 4);
+			System.arraycopy(RUBTClientUtils.intToByteArray(this.lengthPrefix),
+					0, this.message, 0, 4);
 			this.message[4] = (byte) 7;
 		} else if (id == RUBTClientConstants.MESSAGE_TYPE_KEEP_ALIVE) {
 			// no id
@@ -139,7 +145,8 @@ public class Message {
 
 	public byte[] getPayload() throws Exception {
 		byte[] payload = null;
-		if (id == RUBTClientConstants.MESSAGE_TYPE_HAVE || id == RUBTClientConstants.MESSAGE_TYPE_REQUEST
+		if (id == RUBTClientConstants.MESSAGE_TYPE_HAVE
+				|| id == RUBTClientConstants.MESSAGE_TYPE_REQUEST
 				|| id == RUBTClientConstants.MESSAGE_TYPE_PIECE) {
 			if (id == RUBTClientConstants.MESSAGE_TYPE_HAVE) {
 				payload = new byte[4];
@@ -185,25 +192,28 @@ public class Message {
 			int requestLength, int requestBegin, int requestIndex,
 			int havePayload) {
 		if (id == RUBTClientConstants.MESSAGE_TYPE_HAVE) {
-			System.arraycopy(RUBTClientUtils.intToByteArray(havePayload), 0, this.message, 5, 4);
+			System.arraycopy(RUBTClientUtils.intToByteArray(havePayload), 0,
+					this.message, 5, 4);
 		} else if (id == RUBTClientConstants.MESSAGE_TYPE_PIECE) {
 			this.piece = pieceBlock;
-			System.arraycopy(RUBTClientUtils.intToByteArray(pieceIndex), 0, this.message, 5, 4); // set
-																					// index
-																					// payload
-			System.arraycopy(RUBTClientUtils.intToByteArray(pieceBegin), 0, this.message, 9, 4); // set
-																					// begin
-																					// payload
+			System.arraycopy(RUBTClientUtils.intToByteArray(pieceIndex), 0,
+					this.message, 5, 4); // set
+			// index
+			// payload
+			System.arraycopy(RUBTClientUtils.intToByteArray(pieceBegin), 0,
+					this.message, 9, 4); // set
+			// begin
+			// payload
 			System.arraycopy(pieceBlock, 0, this.message, 13,
 					this.lengthPrefix - 9); // set bock payload
 
 		} else if (id == RUBTClientConstants.MESSAGE_TYPE_REQUEST) {
-			System.arraycopy(RUBTClientUtils.intToByteArray(requestIndex), 0, this.message, 5,
-					4); // set index payload
-			System.arraycopy(RUBTClientUtils.intToByteArray(requestBegin), 0, this.message, 9,
-					4); // set begin payload
-			System.arraycopy(RUBTClientUtils.intToByteArray(requestLength), 0, this.message,
-					13, 4); // set length payload
+			System.arraycopy(RUBTClientUtils.intToByteArray(requestIndex), 0,
+					this.message, 5, 4); // set index payload
+			System.arraycopy(RUBTClientUtils.intToByteArray(requestBegin), 0,
+					this.message, 9, 4); // set begin payload
+			System.arraycopy(RUBTClientUtils.intToByteArray(requestLength), 0,
+					this.message, 13, 4); // set length payload
 
 		} else {
 			System.out

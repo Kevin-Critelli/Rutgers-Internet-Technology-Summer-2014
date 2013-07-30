@@ -89,7 +89,7 @@ public class DPeer extends RUBTClient implements Runnable {
 	 * */
 
 	public void downloadPiece() throws Exception {
-		Message interestedMessage = new Message(1, (byte) 2);
+		Message interestedMessage = new Message(1, (byte) RUBTClientConstants.MESSAGE_TYPE_INTERESTED);
 		Message request = null;
 		System.out.println(interestedMessage);
 		int i;

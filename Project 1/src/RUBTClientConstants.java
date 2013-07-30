@@ -41,8 +41,6 @@ public class RUBTClientConstants {
 	public static final byte MESSAGE_TYPE_CANCEL = 8;
 	public static final byte MESSAGE_TYPE_HANDSHAKE = 9;
 	
-	public static byte[] PROTOCOL_STRING = new byte[] { 'B', 'i', 't', 'T',
-			'o', 'r', 'r', 'e', 'n', 't', ' ', 'p', 'r', 'o', 't', 'o', 'c',
-			'o', 'l' };
+	public static byte[] BIT_TORRENT_PROTOCOL = new String("BitTorrent protocol").getBytes();
 
 }
