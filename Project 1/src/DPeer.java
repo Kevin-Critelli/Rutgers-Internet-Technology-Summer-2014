@@ -8,6 +8,7 @@ import java.util.*;
 import java.net.*;
 import java.io.*;
 import java.nio.ByteBuffer;
+import java.security.*;
 
 public class DPeer extends RUBTClient implements Runnable{
 	
@@ -31,7 +32,6 @@ public class DPeer extends RUBTClient implements Runnable{
 
 	public DPeer(String ip, int port){
 		
-		/*
 		try{
 			this.port = port;
 			this.ip = ip; 
@@ -42,7 +42,7 @@ public class DPeer extends RUBTClient implements Runnable{
 			dout = new DataOutputStream(output);			
 		}catch(Exception e){
 			System.out.println("exception thrown in DPeer thread");
-		}*/
+		}
 	}
 	
 	/**
@@ -83,7 +83,6 @@ public class DPeer extends RUBTClient implements Runnable{
 	public void downloadPiece() throws Exception{
 		Message interestedMessage = new Message(1, (byte) 2);
 		Message request = null;
-		System.out.println(interestedMessage);
 		int i;
 		int dif;
 		int lastPieceSize;
@@ -92,29 +91,17 @@ public class DPeer extends RUBTClient implements Runnable{
 		int begin = 0;
 		byte[] buf = null;
 		
-		//bit field
-		for(i=0;i<6;i++){
-			if(i==5){
-				din.readByte();
-				break;
-			}
-			din.readByte();
-		}
+		//Read Response from handshake, potential bit field
+		if(readMessage() == 5){}										/*bit field message*/
+		else{ din.readByte();}											/*no bitfield message*/
 		
+		//send interested message
 		dout.write(interestedMessage.message);
 		dout.flush();
 		socket.setSoTimeout(130000);
 		
-		// grab response from interest
-		for (i = 0; i < 5; i++) {
-			if (i == 4) {
-				if (din.readByte() == 1) {
-					// unchoked
-					break;
-				}
-			}
-			din.readByte();
-		}
+		if(readMessage() ==  1){ din.readByte();}						/*unchoked*/
+		else{}															/*no unchoke message*/
 		
 		dif = this.torrentInfo.piece_hashes.length - 1;
 		lastPieceSize = this.torrentInfo.file_length - (dif * this.torrentInfo.piece_length);
@@ -131,6 +118,7 @@ public class DPeer extends RUBTClient implements Runnable{
 						numPieces++;
 						break;
 					}else{
+						//This loop is for grabbing the last piece, it is a variable size
 						while(true){
 							
 							this.requests[numPieces] = true;
@@ -148,17 +136,12 @@ public class DPeer extends RUBTClient implements Runnable{
 							dout.flush();
 							socket.setSoTimeout(130000);
 							buf = new byte[4];
-
-							for (i = 0; i < 4; i++) {
-								buf[i] = din.readByte();
-							} // bypass bytes
-
+							
+							if(readMessage() == 7){						/*piece message*/}
+							else{										/*no piece message*/}
+							
 							pieceSubset = new byte[count];
-
-							for (i = 0; i < 9; i++) {
-								din.readByte();
-							} // bypass bytes
-
+							
 							for (i = 0; i < count; i++) {
 								pieceSubset[i] = din.readByte();
 							} // save block
@@ -175,6 +158,7 @@ public class DPeer extends RUBTClient implements Runnable{
 						break;
 					}
 				} else {
+						//this else block is for pieces that are fixed size ie everything but the last piece
 						if(this.requests[numPieces] == true && this.have[numPieces] == true){
 							//we have the piece already
 							numPieces++;
@@ -188,21 +172,16 @@ public class DPeer extends RUBTClient implements Runnable{
 								dout.write(request.message);
 								dout.flush();
 								socket.setSoTimeout(1300000);
-
 								buf = new byte[4];
-								for (i = 0; i < 4; i++) {
-									buf[i] = din.readByte();
-								}
-
+								
+								if(readMessage() == 7){ 				/*piece message*/}
+								else{									/*no piece message*/}
+								
 								pieceSubset = new byte[16384];
 
-								for (i = 0; i < 9; i++) {
-									din.readByte();
-								} // bypass bytes
-
-								for (i = 0; i < 16384; i++) {
+								for (i = 0; i < 16384; i++) {  			
 									pieceSubset[i] = din.readByte();
-								} // save data
+								} // save block
 
 								this.subPieces.add(pieceSubset);
 
@@ -215,11 +194,72 @@ public class DPeer extends RUBTClient implements Runnable{
 									begin += 16384;
 								}
 							}
-							break;
+						break;
 					}
 				}
 			}
 		}
+	}
+	
+	/**
+	 * Reads a message from the data input stream and determines
+	 * what type of message it is, it returns the byte id corresponding
+	 * to the type of message it is
+	 * 
+	 * @author Kevin Critelli
+	 * 
+	 * @param din The datainputstream object
+	 * @return byte The byte id of the message
+	 * */
+	
+	public byte readMessage()throws Exception{
+		int length = din.readInt();
+		byte id = din.readByte();
+		
+		if(length == 0){ System.out.println("Keep-Alive"); return -1;}
+	
+		switch(id){
+			case 0: //choke message
+					return id;
+			case 1: //unchoke message
+					return id;
+			case 2: //interested message
+					return id;
+			case 3: //not interested message
+					return id;
+			case 4: //have message.
+					return id;
+			case 5: //bitfield message
+					return id;
+			case 6: //request message
+					return id;
+			case 7: //piece message
+					int index = din.readInt();
+					int begin = din.readInt();
+			case 8: //cancel message
+					return id;
+			default: break;
+		}
+		return 0;
+	}
+	
+	/**
+	 * This funtion verifys the hash of the piece against the hash from the torrent file
+	 * 
+	 * @author Kevin Critelli
+	 * @param piece A byte[] array representation of the piece
+	 * @param hash A byte[] array of the hash from the torrent file
+	 * */
+	
+	public boolean verifyHash(byte[] piece, byte[]hash)throws Exception{
+		byte temp[];
+		
+		MessageDigest x = MessageDigest.getInstance("SHA-1");
+		temp = x.digest(piece);
+		x.update(temp);
+		
+		if(Arrays.equals(temp,hash)){ return true;}
+		else{ return false;}
 	}
 	
 	/**
@@ -272,9 +312,11 @@ public class DPeer extends RUBTClient implements Runnable{
 				System.out.println("Handshake failed");
 				return;
 			}
+	
 			downloadPiece();
 		}catch(Exception e){
 			System.out.println("Exception thrown in run method");
+			e.printStackTrace();
 		}
 	}
 }

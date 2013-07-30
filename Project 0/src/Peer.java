@@ -221,6 +221,7 @@ public class Peer implements Runnable {
 					request = new Message(13, (byte) 6);
 					request.setPayload(null, -1, -1, 16384, begin, numPieces,
 							-1);
+					System.out.println("requesting " + numPieces);
 					dout.write(request.message);
 					dout.flush();
 					socket.setSoTimeout(1300000);
