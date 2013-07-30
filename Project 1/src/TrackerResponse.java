@@ -9,6 +9,7 @@
 import java.io.DataInputStream;
 import java.io.IOException;
 import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
@@ -25,6 +26,7 @@ public class TrackerResponse {
 
 	public String failureReason;
 	public String failureMessage;
+	public String announceURL;
 	public int interval;
 	public int minimumInterval;
 	public String trackerID;
@@ -108,7 +110,7 @@ public class TrackerResponse {
 			System.out.println("Warning: no minimum interval, setting to zero");
 			this.minimumInterval = 0;
 		}
-
+		
 		// System.out.println(Bencoder2.getInfoBytes(o.array()));
 
 		ByteBuffer peersResponse = (ByteBuffer) response.get(RUBTClientConstants.TRACKER_RESPONSE_KEY_PEERS);
@@ -155,12 +157,12 @@ public class TrackerResponse {
 	 * @throws UnknownHostException
 	 * @throws IOException
 	 */
-	private static byte[] getTrackerResponse(TorrentInfo ti)
+	private byte[] getTrackerResponse(TorrentInfo ti)
 			throws UnknownHostException, IOException {
 
 		String info_hash = RUBTClientUtils.toHexString(ti.info_hash.array()); // info_hash
-		String peer_id = RUBTClientUtils.toHexString("paukevinsrichschmidt"
-				.getBytes()); // peer_id
+		String peer_id = RUBTClientUtils.toHexString(RUBTClientConstants.peerid); // peer_id
+		
 		String port = "" + 6883; // port
 		String downloaded = "" + 0;
 		String uploaded = "" + 0;
@@ -168,7 +170,37 @@ public class TrackerResponse {
 		String announceURL = ti.announce_url.toString();
 
 		String newURL = announceURL.toString();
+		this.announceURL = newURL;
 
+		newURL += "?" + RUBTClientConstants.TRACKER_RESPONSE_KEY_INFO_HASH + "=" + info_hash
+				+ "&" + RUBTClientConstants.TRACKER_RESPONSE_KEY_PEER_ID + "=" + peer_id
+				+ "&" + RUBTClientConstants.TRACKER_RESPONSE_KEY_PORT + "=" + port + "&"
+				+ RUBTClientConstants.TRACKER_RESPONSE_KEY_UPLOADED + "=" + uploaded + "&"
+				+ RUBTClientConstants.TRACKER_RESPONSE_KEY_DOWNLOADED + "=" + downloaded
+				+ "&" + RUBTClientConstants.TRACKER_RESPONSE_KEY_LEFT + "=" + left;
+
+		HttpURLConnection huc = (HttpURLConnection) new URL(newURL)
+				.openConnection();
+		DataInputStream dis = new DataInputStream(huc.getInputStream());
+
+		int dataSize = huc.getContentLength();
+		byte[] retArray = new byte[dataSize];
+
+		dis.readFully(retArray);
+		dis.close();
+
+		return retArray;
+	}
+	
+	public byte[] getTrackerResponse(byte[] info_hash_input, int downloaded, int uploaded, int left) throws MalformedURLException, IOException {
+
+		String info_hash = RUBTClientUtils.toHexString(info_hash_input); // info_hash
+		String peer_id = RUBTClientUtils.toHexString(RUBTClientConstants.peerid); // peer_id
+		
+		String port = "" + 6883; // port
+
+		String newURL = this.announceURL;
+		
 		newURL += "?" + RUBTClientConstants.TRACKER_RESPONSE_KEY_INFO_HASH + "=" + info_hash
 				+ "&" + RUBTClientConstants.TRACKER_RESPONSE_KEY_PEER_ID + "=" + peer_id
 				+ "&" + RUBTClientConstants.TRACKER_RESPONSE_KEY_PORT + "=" + port + "&"
