@@ -9,7 +9,7 @@ public class TrackerThread extends RUBTClient implements Runnable {
 	public void run() {
 		try {
 			if (!firstTime) {
-				trackerResponse = trackerResponse.getTrackerResponse(
+				trackerResponse = trackerResponse.getTrackerResponse(announce_url,
 						torrentInfo.info_hash.array(), downloaded, uploaded,
 						torrentInfo.file_length - downloaded);
 

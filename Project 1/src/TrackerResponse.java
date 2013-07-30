@@ -196,14 +196,14 @@ public class TrackerResponse {
 		return retArray;
 	}
 	
-	public TrackerResponse getTrackerResponse(byte[] info_hash_input, int downloaded, int uploaded, int left) throws MalformedURLException, IOException {
+	public TrackerResponse getTrackerResponse(String base_url, byte[] info_hash_input, int downloaded, int uploaded, int left) throws MalformedURLException, IOException {
 
 		String info_hash = RUBTClientUtils.toHexString(info_hash_input); // info_hash
 		String peer_id = RUBTClientUtils.toHexString(RUBTClientConstants.peerid); // peer_id
 		
 		String port = "" + 6883; // port
 
-		String newURL = "http://128.6.171.2:6969/announce";
+		String newURL = base_url;
 		
 		newURL += "?" + RUBTClientConstants.TRACKER_RESPONSE_KEY_INFO_HASH + "=" + info_hash
 				+ "&" + RUBTClientConstants.TRACKER_RESPONSE_KEY_PEER_ID + "=" + peer_id

@@ -22,6 +22,7 @@ public class RUBTClient {
 	public static int uploaded = 0;
 	public static TorrentInfo torrentInfo = null;
 	public static TrackerResponse trackerResponse = null;
+	public static String announce_url = "";
 
 	/**
 	 * @param args
@@ -72,6 +73,8 @@ public class RUBTClient {
 		if (RUBTClientConstants.DEVELOP) {
 			System.out.println(trackerResponse);
 		}
+		
+		announce_url = trackerResponse.announceURL;
 
 		/**
 		 * 6. Capture the response from the tracker and decode it in order to
