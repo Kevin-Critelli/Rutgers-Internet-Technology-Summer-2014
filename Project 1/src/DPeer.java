@@ -19,12 +19,8 @@ public class DPeer extends RUBTClient implements Runnable {
 	public Socket socket = null;
 	public OutputStream output = null;
 	public InputStream input = null;
-	ArrayList<byte[]> subPieces = new ArrayList<byte[]>(); // arraylist holding
-															// the sub pieces
-															// within the piece
-															// requested
-	byte[] pieceSubset = null; // byte array representing a sub piece from
-								// within the piece requested
+	ArrayList<byte[]> subPieces = new ArrayList<byte[]>(); 				// arraylist holding the sub pieces within the piece requested
+	byte[] pieceSubset = null; 											// byte array representing a sub piece from within the piece requested
 
 	/**
 	 * Constructor for a DPeer object
@@ -62,7 +58,6 @@ public class DPeer extends RUBTClient implements Runnable {
 	 * */
 
 	public boolean sendHandshake(byte[] info_hash) throws Exception {
-
 		Message handshake = new Message(info_hash, RUBTClientConstants.peerid);
 		dout.write(handshake.message);
 		dout.flush();
@@ -72,7 +67,7 @@ public class DPeer extends RUBTClient implements Runnable {
 		din.readFully(receivingShake);
 
 		byte[] peerInfoHash = Arrays.copyOfRange(receivingShake, 28, 48);
-		if (!Arrays.equals(peerInfoHash, info_hash)) {
+		if(!Arrays.equals(peerInfoHash, info_hash)){
 			return false;
 		} else {
 			return true;
@@ -97,7 +92,6 @@ public class DPeer extends RUBTClient implements Runnable {
 		int count = 16384;
 		int numPieces = 0;
 		int begin = 0;
-		byte[] buf = null;
 		
 		//Read Response from handshake, potential bit field
 		if(readMessage() == 5){}										/*bit field message*/
@@ -144,10 +138,9 @@ public class DPeer extends RUBTClient implements Runnable {
 							dout.write(request.message);
 							dout.flush();
 							socket.setSoTimeout(130000);
-							buf = new byte[4];
 							
-							if(readMessage() == 7){						/*piece message*/}
-							else{										/*no piece message*/}
+							if(readMessage() == 7){}					/*piece message*/
+							else{}										/*no piece message*/
 							
 							pieceSubset = new byte[count];
 							
@@ -180,10 +173,9 @@ public class DPeer extends RUBTClient implements Runnable {
 								dout.write(request.message);
 								dout.flush();
 								socket.setSoTimeout(1300000);
-								buf = new byte[4];
 								
-								if(readMessage() == 7){ 				/*piece message*/}
-								else{									/*no piece message*/}
+								if(readMessage() == 7){} 				/*piece message*/
+								else{}									/*no piece message*/
 								
 								pieceSubset = new byte[16384];
 
@@ -208,6 +200,7 @@ public class DPeer extends RUBTClient implements Runnable {
 			}
 		}
 	}
+	
 	/**
 	 * Reads a message from the data input stream and determines
 	 * what type of message it is, it returns the byte id corresponding
@@ -272,8 +265,6 @@ public class DPeer extends RUBTClient implements Runnable {
 	/**
 	 * This function updates our main array of pieces, and sets a flag in the have array
 	 * notifying other threads that we now have this piece 
-	 * This function updates our main array of pieces, and sets a flag in the
-	 * have array notifying other threads that we now have this piece
 	 * 
 	 * @author Kevin Critelli
 	 * @param index
@@ -295,8 +286,7 @@ public class DPeer extends RUBTClient implements Runnable {
 		fullPiece = new byte[size];
 
 		for (i = 0; i < this.subPieces.size(); i++) {
-			System.arraycopy(this.subPieces.get(i), 0, fullPiece, count,
-					this.subPieces.get(i).length);
+			System.arraycopy(this.subPieces.get(i),0,fullPiece,count,this.subPieces.get(i).length);
 			count += this.subPieces.get(i).length;
 		}
 

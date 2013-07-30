@@ -118,23 +118,21 @@ public class RUBTClient {
 			new Thread(p).start();
 		}
 
-		while (!check()) {
-		} // makes sure we have all pieces before writing to file
+		while (!check()) {} 											// makes sure we have all pieces before writing to file
 
-		// create FrontDoor object (richie) -->> for uploading to peers who want
-		// our pieces
-
+		//create FrontDoor object (richie) -->> for uploading to peers who want
+		//our pieces
+				
 		/** Writes data to output file **/
 
 		try {
-			// save file
-			FileOutputStream fileoutput = new FileOutputStream(new File(
-					simargs[1]));
+			//save file
+			FileOutputStream fileoutput = new FileOutputStream(new File(simargs[1]));
 			for (i = 0; i < pieces.length; i++) {
 				byte[] array = pieces[i].array();
 				fileoutput.write(pieces[i].array());
 			}
-		} catch (Exception e) {
+		}catch (Exception e) {
 			System.out.println("exception thrown writing to file");
 		}
 	}
