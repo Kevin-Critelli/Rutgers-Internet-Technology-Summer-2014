@@ -155,6 +155,7 @@ public class DPeer extends RUBTClient implements Runnable {
 								numPieces++;
 								
 								//SEND EVEN=COMPLETED TRACKER HERE
+								//UPDATE DOWNLOADED TOTAL NUMBER OF BYTES THUS FAR
 								
 								break;
 							}
@@ -193,6 +194,7 @@ public class DPeer extends RUBTClient implements Runnable {
 									/*if(numPieces = 0){
 										//send event = started to tracker
 									}*/
+									//UPDATED DOWNLOADED TOTAL NUMBER OF BYTES THUS FAR
 									
 									updatePieces(numPieces);
 									numPieces++;
