@@ -153,6 +153,9 @@ public class DPeer extends RUBTClient implements Runnable {
 							if (lastPieceSize < 0) {
 								updatePieces(numPieces);
 								numPieces++;
+								
+								//SEND EVEN=COMPLETED TRACKER HERE
+								
 								break;
 							}
 							begin += count;
@@ -186,6 +189,11 @@ public class DPeer extends RUBTClient implements Runnable {
 								this.subPieces.add(pieceSubset);
 
 								if (begin + 16384 == this.torrentInfo.piece_length) {
+									
+									/*if(numPieces = 0){
+										//send event = started to tracker
+									}*/
+									
 									updatePieces(numPieces);
 									numPieces++;
 									begin = 0;
@@ -227,7 +235,7 @@ public class DPeer extends RUBTClient implements Runnable {
 					return id;
 			case 3: //not interested message
 					return id;
-			case 4: //have message.
+			case 4: //have message
 					return id;
 			case 5: //bitfield message
 					return id;
@@ -272,7 +280,7 @@ public class DPeer extends RUBTClient implements Runnable {
 	 *            are about to write into our main piece array
 	 * */
 
-	public synchronized void updatePieces(int index) {
+	public synchronized void updatePieces(int index) throws Exception{
 		byte[] fullPiece;
 		int size = 0;
 		int count = 0;
@@ -289,7 +297,14 @@ public class DPeer extends RUBTClient implements Runnable {
 			System.arraycopy(this.subPieces.get(i),0,fullPiece,count,this.subPieces.get(i).length);
 			count += this.subPieces.get(i).length;
 		}
-
+	
+		//verify hash
+		if(verifyHash(fullPiece, this.torrentInfo.piece_hashes[index].array()) == true){
+			System.out.println("hashes match");
+		}else{
+			System.out.println("HASHES DO NOT MATCH???");
+		}
+	
 		// wraps full piece and puts into main piece array
 		ByteBuffer buffer = ByteBuffer.wrap(fullPiece);
 		this.pieces[index] = buffer;

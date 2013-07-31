@@ -1,36 +1,35 @@
 import java.io.*;
 import java.net.*;
 
-public class FrontDoor {
+public class FrontDoor implements Runnable {
         int port = 5100;
         ServerSocket frontDoor;
         
         public FrontDoor() throws Exception
         {
-            this.port = port;
-            ServerSocket frontDoor = new ServerSocket(port);
+            this.frontDoor = new ServerSocket(port);
         }
             
         public UPeer ListenForHandshakes() throws Exception {
+			System.out.println("Spawning upload threads");
             while(true)
             {
                 Socket connectionSocket = frontDoor.accept();
                 UPeer Leech = new UPeer(connectionSocket);
-                return Leech;
-           
+                new Thread(Leech).start();
             }
     
         }
         public void run() 
-    {
-        try 
-        {
-           ListenForHandshakes();
-        }
-        catch (Exception e) {
-            System.out.println("Something went wrong listening for handshakes");
-        }
-    }
+		{
+			try 
+			{
+			   ListenForHandshakes();
+			}
+			catch (Exception e) {
+				System.out.println("Something went wrong listening for handshakes");
+			}
+		}
 }
 // Create the front door once
 // Listen for a "doorbell" in the thread

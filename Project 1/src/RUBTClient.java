@@ -14,7 +14,7 @@ import java.nio.ByteBuffer;
  */
 
 public class RUBTClient {
-
+	
 	public static ByteBuffer[] pieces = null;
 	public static boolean[] requests = null;
 	public static boolean[] have = null;
@@ -112,16 +112,22 @@ public class RUBTClient {
 		// peers.add(new Peer(5100, "192.168.1.3"));
 
 		// create x peers
+		System.out.println("Spawning download threads");
 		for (i = 0; i < peers.size(); i++) {
 			ipString = peers.get(i).ip.replaceAll(":", ".");
 			DPeer p = new DPeer(ipString, peers.get(i).port);
 			new Thread(p).start();
 		}
-
+		
+		try{
+			System.out.println("creating front door object to listen for uploads");
+			FrontDoor f = new FrontDoor();
+			new Thread(f).start();
+		}catch(Exception e){
+			e.printStackTrace();
+		}
+		
 		while (!check()) {} 											// makes sure we have all pieces before writing to file
-
-		//create FrontDoor object (richie) -->> for uploading to peers who want
-		//our pieces
 				
 		/** Writes data to output file **/
 
