@@ -323,6 +323,34 @@ public class TrackerResponse {
 		dis.close();
 	}
 	
+	
+	public void sendTrackerFinishedStopped(String base_url, byte[] info_hash_input, int downloaded, int uploaded, int left) throws MalformedURLException, IOException {
+
+		String info_hash = RUBTClientUtils.toHexString(info_hash_input); // info_hash
+		String peer_id = RUBTClientUtils.toHexString(RUBTClientConstants.peerid); // peer_id
+		
+		String port = "" + 6883; // port
+
+		String newURL = base_url;
+		
+		newURL += "?" + RUBTClientConstants.TRACKER_RESPONSE_KEY_INFO_HASH + "=" + info_hash
+				+ "&" + RUBTClientConstants.TRACKER_RESPONSE_KEY_PEER_ID + "=" + peer_id
+				+ "&" + RUBTClientConstants.TRACKER_RESPONSE_KEY_PORT + "=" + port + "&"
+				+ RUBTClientConstants.TRACKER_RESPONSE_KEY_UPLOADED + "=" + uploaded + "&"
+				+ RUBTClientConstants.TRACKER_RESPONSE_KEY_DOWNLOADED + "=" + downloaded
+				+ "&" + RUBTClientConstants.TRACKER_RESPONSE_KEY_LEFT + "=" + left
+				+ "&" + RUBTClientConstants.TRACKER_RESPONSE_KEY_EVENT + "=" + RUBTClientConstants.TRACKER_RESPONSE_KEY_STOPPED;
+
+		HttpURLConnection huc = (HttpURLConnection) new URL(newURL)
+				.openConnection();
+		DataInputStream dis = new DataInputStream(huc.getInputStream());
+
+		int dataSize = huc.getContentLength();
+		byte[] retArray = new byte[dataSize];
+
+		dis.readFully(retArray);
+		dis.close();
+	}
 	public boolean containsPeer(String peerIP) {
 		for (int i = 0; i < peers.size(); i++) {
 			if (peers.get(i).ip.contains(peerIP)) {

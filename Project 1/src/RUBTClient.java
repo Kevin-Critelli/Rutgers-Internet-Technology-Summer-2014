@@ -1,4 +1,3 @@
-
 import java.util.*;
 import java.net.*;
 import java.io.*;
@@ -118,30 +117,31 @@ public class RUBTClient {
 
 		try {
 			System.out
-					.println("creating front door object to listen for uploads");
+			.println("creating front door object to listen for uploads");
 			FrontDoor f = new FrontDoor();
 			new Thread(f).start();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		
+
 		System.out.println("spawning tracker thread to send announce messages during the interval");
 		TrackerThread t = new TrackerThread();
 		Thread tt = new Thread(t);
 		tt.run();
-		
+
 		int choice = 0;
 		Scanner sc = new Scanner(System.in);
 		while(true){
 			System.out.println("1) Suspend Program (Save state)");
 			System.out.println("2) Quit");
 			choice = sc.nextInt();
-			
+
 			if(choice == 1){
 				System.out.println("exiting and saving state");
 				break;
 			}else if(choice == 2){
 				System.out.println("Exiting");
+				trackerResponse.sendTrackerFinishedEvent(announce_url, torrentInfo.info_hash.array(), downloaded, uploaded, torrentInfo.file_length - downloaded)
 				break;
 			}else{
 				System.out.println("Invalid option, please enter 1 or 2");
@@ -152,17 +152,19 @@ public class RUBTClient {
 		} // makes sure we have all pieces before writing to file
 
 		/** Writes data to output file **/
-		
-		try {
-			trackerResponse.sendTrackerFinishedEvent(announce_url, torrentInfo.info_hash.array(), downloaded, uploaded, 0);
-		} catch (MalformedURLException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-		} catch (IOException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
+
+		if (choice != 2){ // so it doesn't send completed if it was stopped
+			try {
+				trackerResponse.sendTrackerFinishedEvent(announce_url, torrentInfo.info_hash.array(), downloaded, uploaded, 0);
+			} catch (MalformedURLException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			} catch (IOException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
 		}
-		
+
 		try {
 			// save file
 			FileOutputStream fileoutput = new FileOutputStream(new File(

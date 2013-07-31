@@ -27,6 +27,7 @@ public class RUBTClientConstants {
 	public static final ByteBuffer TRACKER_RESPONSE_KEY_MIN_INTERVAL = ByteBuffer.wrap("min interval".getBytes());
 	public static final ByteBuffer TRACKER_RESPONSE_KEY_COMPLETE = ByteBuffer.wrap("complete".getBytes());
 	public static final ByteBuffer TRACKER_RESPONSE_KEY_INCOMPLETE = ByteBuffer.wrap("incomplete".getBytes());
+	public static final ByteBuffer TRACKER_RESPONSE_KEY_STOPPED = ByteBuffer.wrap("stopped".getBytes());
 	
 	public final static String ACCEPTABLE_PEER_1 = "128:6:171:3";
 	public final static String ACCEPTABLE_PEER_2 = "128:6:171:4";
