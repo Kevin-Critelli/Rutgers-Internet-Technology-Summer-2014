@@ -1,9 +1,6 @@
-<<<<<<< HEAD
+
 import java.util.*;
 import java.net.*;
-=======
-import java.util.ArrayList;
->>>>>>> 299e85396a6930a6e0cad1aeb5bcbe4f44eb573c
 import java.io.*;
 import java.net.MalformedURLException;
 import java.nio.ByteBuffer;
@@ -127,7 +124,6 @@ public class RUBTClient {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-<<<<<<< HEAD
 		
 		System.out.println("spawning tracker thread to send announce messages during the interval");
 		TrackerThread t = new TrackerThread();
@@ -151,15 +147,6 @@ public class RUBTClient {
 				System.out.println("Invalid option, please enter 1 or 2");
 			}
 		}
-		
-		while (!check()) {} 											// makes sure we have all pieces before writing to file
-		/** Writes data to output file **/
-=======
-
-		TrackerThread t = new TrackerThread();
-		Thread tt = new Thread(t);
-		tt.run();
->>>>>>> 299e85396a6930a6e0cad1aeb5bcbe4f44eb573c
 
 		while (!check()) {
 		} // makes sure we have all pieces before writing to file
