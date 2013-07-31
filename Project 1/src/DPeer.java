@@ -94,15 +94,22 @@ public class DPeer extends RUBTClient implements Runnable {
 		int begin = 0;
 		
 		//Read Response from handshake, potential bit field
-		if(readMessage() == 5){}										/*bit field message*/
-		else{ din.readByte();}											/*no bitfield message*/
+		try{
+			socket.setSoTimeout(6000);
+			if(readMessage() == 5){}										/*bit field message*/
+			else{din.readByte();}											/*no bitfield message*/
+		}catch(Exception e){
+			//System.out.println("timed out, sending interested");
+		}
 		
 		//send interested message
+		//System.out.println("sending interested");
 		dout.write(interestedMessage.message);
 		dout.flush();
 		socket.setSoTimeout(130000);
 		
-		if(readMessage() ==  1){ din.readByte();}						/*unchoked*/
+		//System.out.println("waiting for unchoke");
+		if(readMessage() ==  1){din.readByte();}						/*unchoked*/
 		else{}															/*no unchoke message*/
 
 		dif = this.torrentInfo.piece_hashes.length - 1;
@@ -147,7 +154,8 @@ public class DPeer extends RUBTClient implements Runnable {
 							for (i = 0; i < count; i++) {
 								pieceSubset[i] = din.readByte();
 							} // save block
-
+							
+							if(this.have[numPieces] != true){this.downloaded += count;}
 							this.subPieces.add(pieceSubset);
 
 							if (lastPieceSize < 0) {
@@ -155,8 +163,9 @@ public class DPeer extends RUBTClient implements Runnable {
 								numPieces++;
 								
 								//SEND EVEN=COMPLETED TRACKER HERE
-								//UPDATE DOWNLOADED TOTAL NUMBER OF BYTES THUS FAR
-								
+								//UPDATE DOWNLOADED TOTAL NUMBER OF BYTES THUS FAR	
+								this.trackerResponse.sendTrackerFinishedEvent(this.announce_url,this.torrentInfo.info_hash.array(),this.downloaded,this.uploaded,this.torrentInfo.file_length - this.downloaded);
+							
 								break;
 							}
 							begin += count;
@@ -186,14 +195,18 @@ public class DPeer extends RUBTClient implements Runnable {
 								for (i = 0; i < 16384; i++) {  			
 									pieceSubset[i] = din.readByte();
 								} // save block
-
+								
+								
+								if(this.have[numPieces] != true){this.downloaded += count;}
 								this.subPieces.add(pieceSubset);
 
 								if (begin + 16384 == this.torrentInfo.piece_length) {
 									
-									/*if(numPieces = 0){
+									if(numPieces == 0){
 										//send event = started to tracker
-									}*/
+										
+										
+									}
 									//UPDATED DOWNLOADED TOTAL NUMBER OF BYTES THUS FAR
 									
 									updatePieces(numPieces);
@@ -225,7 +238,6 @@ public class DPeer extends RUBTClient implements Runnable {
 	public byte readMessage()throws Exception{
 		int length = din.readInt();
 		byte id = din.readByte();
-		
 		if(length == 0){ System.out.println("Keep-Alive"); return -1;}
 	
 		switch(id){
@@ -336,6 +348,15 @@ public class DPeer extends RUBTClient implements Runnable {
 			downloadPiece();
 		} catch (Exception e) {
 			System.out.println("Exception thrown in run method");
+			e.printStackTrace();
+		}
+		
+		try{
+			din.close();
+			input.close();
+			dout.close();
+			output.close();
+		}catch(Exception e){
 			e.printStackTrace();
 		}
 	}

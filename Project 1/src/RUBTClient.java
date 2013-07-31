@@ -105,7 +105,6 @@ public class RUBTClient {
 		 **/
 
 		// add richies ip to peers @ip 192.168.1.3 @port 5100
-		// peers.add(new Peer(5100, "192.168.1.3"));
 
 		// create x peers
 		System.out.println("Spawning download threads");
@@ -115,43 +114,38 @@ public class RUBTClient {
 			new Thread(p).start();
 		}
 
+		DPeer p = new DPeer("192.168.1.5", 5120);
+		new Thread(p).start();
+
 		try {
 			System.out
-			.println("creating front door object to listen for uploads");
+					.println("creating front door object to listen for uploads");
 			FrontDoor f = new FrontDoor();
 			new Thread(f).start();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 
-		System.out.println("spawning tracker thread to send announce messages during the interval");
+		System.out
+				.println("spawning tracker thread to send announce messages during the interval");
 		TrackerThread t = new TrackerThread();
 		Thread tt = new Thread(t);
 		tt.run();
 
 		int choice = 0;
 		Scanner sc = new Scanner(System.in);
-		while(true){
+		while (true) {
 			System.out.println("1) Suspend Program (Save state)");
 			System.out.println("2) Quit");
 			choice = sc.nextInt();
 
-			if(choice == 1){
+			if (choice == 1) {
 				System.out.println("exiting and saving state");
 				break;
-			}else if(choice == 2){
+			} else if (choice == 2) {
 				System.out.println("Exiting");
-				try {
-					trackerResponse.sendTrackerFinishedEvent(announce_url, torrentInfo.info_hash.array(), downloaded, uploaded, torrentInfo.file_length - downloaded);
-				} catch (MalformedURLException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
 				break;
-			}else{
+			} else {
 				System.out.println("Invalid option, please enter 1 or 2");
 			}
 		}
@@ -161,16 +155,15 @@ public class RUBTClient {
 
 		/** Writes data to output file **/
 
-		if (choice != 2){ // so it doesn't send completed if it was stopped
-			try {
-				trackerResponse.sendTrackerFinishedEvent(announce_url, torrentInfo.info_hash.array(), downloaded, uploaded, 0);
-			} catch (MalformedURLException e1) {
-				// TODO Auto-generated catch block
-				e1.printStackTrace();
-			} catch (IOException e1) {
-				// TODO Auto-generated catch block
-				e1.printStackTrace();
-			}
+		try {
+			trackerResponse.sendTrackerFinishedEvent(announce_url,
+					torrentInfo.info_hash.array(), downloaded, uploaded, 0);
+		} catch (MalformedURLException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		} catch (IOException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
 		}
 
 		try {
@@ -183,6 +176,12 @@ public class RUBTClient {
 			}
 		} catch (Exception e) {
 			System.out.println("exception thrown writing to file");
+		}
+		try {
+			trackerResponse.sendTrackerFinishedStopped(announce_url,
+					torrentInfo.info_hash.array(), downloaded, uploaded, 0);
+		} catch (Exception e) {
+			e.printStackTrace();
 		}
 		System.exit(0);
 	}

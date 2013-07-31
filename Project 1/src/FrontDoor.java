@@ -3,7 +3,7 @@ import java.net.*;
 
 
 public class FrontDoor implements Runnable {
-        int port = 5100;
+        int port = 5110;
         ServerSocket frontDoor;
         
         public FrontDoor() throws Exception

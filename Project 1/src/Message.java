@@ -86,8 +86,7 @@ public class Message {
 		this.message[0] = (byte) 19;
 		this.info_hash = info_hash;
 		this.peerid = peerid;
-		System.arraycopy(RUBTClientConstants.BIT_TORRENT_PROTOCOL, 0, this.message,
-				1, 19);
+		System.arraycopy(RUBTClientConstants.BIT_TORRENT_PROTOCOL, 0, this.message,1, 19);
 		System.arraycopy(info_hash, 0, this.message, 28, 20);
 		System.arraycopy(peerid, 0, this.message, 48, 20);
 	}
