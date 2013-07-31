@@ -160,7 +160,8 @@ public class UPeer extends RUBTClient implements Runnable {
 		try {
 			ReceiveHandshake();
 		} catch (Exception e) {
-			System.out.println("Something went wrong receiving the handshake");
+			//something went wrong during handshake or upload 
+			e.printStackTrace(e);
 		}
 		
 		try{
