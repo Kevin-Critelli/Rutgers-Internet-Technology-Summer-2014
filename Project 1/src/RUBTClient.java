@@ -1,20 +1,10 @@
 import java.util.ArrayList;
-import java.net.*;
 import java.io.*;
+import java.net.MalformedURLException;
 import java.nio.ByteBuffer;
 
-/**
- * @author pauljones
- * 
- *         Do not put any error checking in this class.
- * 
- *         This is for high level abstraction, delegating error handling and
- *         hard work to classes.
- * 
- */
-
 public class RUBTClient {
-	
+
 	public static ByteBuffer[] pieces = null;
 	public static boolean[] requests = null;
 	public static boolean[] have = null;
@@ -26,7 +16,7 @@ public class RUBTClient {
 
 	/**
 	 * @param args
-	 * @throws InterruptedException 
+	 * @throws InterruptedException
 	 */
 
 	public static void main(String[] args) throws InterruptedException {
@@ -73,7 +63,7 @@ public class RUBTClient {
 		if (RUBTClientConstants.DEVELOP) {
 			System.out.println(trackerResponse);
 		}
-		
+
 		announce_url = trackerResponse.announceURL;
 
 		/**
@@ -123,31 +113,44 @@ public class RUBTClient {
 			DPeer p = new DPeer(ipString, peers.get(i).port);
 			new Thread(p).start();
 		}
-		
-		try{
-			System.out.println("creating front door object to listen for uploads");
+
+		try {
+			System.out
+					.println("creating front door object to listen for uploads");
 			FrontDoor f = new FrontDoor();
 			new Thread(f).start();
-		}catch(Exception e){
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		
+
 		TrackerThread t = new TrackerThread();
 		Thread tt = new Thread(t);
 		tt.run();
-		
-		while (!check()) {} 											// makes sure we have all pieces before writing to file
-				
-		/** Writes data to output file **/
 
+		while (!check()) {
+		} // makes sure we have all pieces before writing to file
+
+		/** Writes data to output file **/
+		
 		try {
-			//save file
-			FileOutputStream fileoutput = new FileOutputStream(new File(simargs[1]));
+			trackerResponse.sendTrackerFinishedEvent(announce_url, torrentInfo.info_hash.array(), downloaded, uploaded, 0);
+		} catch (MalformedURLException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		} catch (IOException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+		
+		try {
+			// save file
+			FileOutputStream fileoutput = new FileOutputStream(new File(
+					simargs[1]));
 			for (i = 0; i < pieces.length; i++) {
 				byte[] array = pieces[i].array();
 				fileoutput.write(pieces[i].array());
 			}
-		}catch (Exception e) {
+		} catch (Exception e) {
 			System.out.println("exception thrown writing to file");
 		}
 	}

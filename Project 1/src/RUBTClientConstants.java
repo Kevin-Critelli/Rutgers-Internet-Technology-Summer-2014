@@ -17,6 +17,9 @@ public class RUBTClientConstants {
 	public final static String TRACKER_RESPONSE_KEY_UPLOADED = "uploaded";
 	public final static String TRACKER_RESPONSE_KEY_DOWNLOADED = "downloaded";
 	public final static String TRACKER_RESPONSE_KEY_LEFT = "left";
+	public final static String TRACKER_RESPONSE_KEY_EVENT = "event";
+	public final static String TRACKER_RESPONSE_KEY_STARTED = "started";
+	public final static String TRACKER_RESPONSE_KEY_COMPLETED = "completed";
 	
 	public static final ByteBuffer TRACKER_RESPONSE_KEY_FAILURE = ByteBuffer.wrap("failure reason".getBytes());
 	public static final ByteBuffer TRACKER_RESPONSE_KEY_PEERS = ByteBuffer.wrap("peers".getBytes());
