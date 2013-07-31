@@ -64,7 +64,7 @@ public class TrackerResponse {
 
 		byte[] encodedResponse = null;
 		try {
-			encodedResponse = getTrackerResponse(torrentInfo);
+			encodedResponse = getTrackerResponseWithEventStarted(torrentInfo);
 		} catch (UnknownHostException e2) {
 			// TODO Auto-generated catch block
 			e2.printStackTrace();
@@ -161,7 +161,7 @@ public class TrackerResponse {
 	 * @throws UnknownHostException
 	 * @throws IOException
 	 */
-	private byte[] getTrackerResponse(TorrentInfo ti)
+	private byte[] getTrackerResponseWithEventStarted(TorrentInfo ti)
 			throws UnknownHostException, IOException {
 
 		String info_hash = RUBTClientUtils.toHexString(ti.info_hash.array()); // info_hash
@@ -181,8 +181,9 @@ public class TrackerResponse {
 				+ "&" + RUBTClientConstants.TRACKER_RESPONSE_KEY_PORT + "=" + port + "&"
 				+ RUBTClientConstants.TRACKER_RESPONSE_KEY_UPLOADED + "=" + uploaded + "&"
 				+ RUBTClientConstants.TRACKER_RESPONSE_KEY_DOWNLOADED + "=" + downloaded
-				+ "&" + RUBTClientConstants.TRACKER_RESPONSE_KEY_LEFT + "=" + left;
-
+				+ "&" + RUBTClientConstants.TRACKER_RESPONSE_KEY_LEFT + "=" + left
+				+ "&" + RUBTClientConstants.TRACKER_RESPONSE_KEY_EVENT + "=" + RUBTClientConstants.TRACKER_RESPONSE_KEY_STARTED;
+		
 		HttpURLConnection huc = (HttpURLConnection) new URL(newURL)
 				.openConnection();
 		DataInputStream dis = new DataInputStream(huc.getInputStream());
@@ -287,21 +288,40 @@ public class TrackerResponse {
 
 				returnResponse.peers.add(new Peer(peerPort, peerIP));
 			} catch (Exception e) {
-				// I made the number 33 because that's the recommened number of
-				// peers.
-				// This exception exists because there are obviously not always
-				// going
-				// to be 33 peers. Sometimes there could be more. But for right
-				// now,
-				// I'm hacking and slashing and just going with it.
-				// It works. (TM)
-				// Also I'm sorry. This sucks.
+				
 			}
 		}
 		
 		return returnResponse;
 	}
 	
+	public void sendTrackerFinishedEvent(String base_url, byte[] info_hash_input, int downloaded, int uploaded, int left) throws MalformedURLException, IOException {
+
+		String info_hash = RUBTClientUtils.toHexString(info_hash_input); // info_hash
+		String peer_id = RUBTClientUtils.toHexString(RUBTClientConstants.peerid); // peer_id
+		
+		String port = "" + 6883; // port
+
+		String newURL = base_url;
+		
+		newURL += "?" + RUBTClientConstants.TRACKER_RESPONSE_KEY_INFO_HASH + "=" + info_hash
+				+ "&" + RUBTClientConstants.TRACKER_RESPONSE_KEY_PEER_ID + "=" + peer_id
+				+ "&" + RUBTClientConstants.TRACKER_RESPONSE_KEY_PORT + "=" + port + "&"
+				+ RUBTClientConstants.TRACKER_RESPONSE_KEY_UPLOADED + "=" + uploaded + "&"
+				+ RUBTClientConstants.TRACKER_RESPONSE_KEY_DOWNLOADED + "=" + downloaded
+				+ "&" + RUBTClientConstants.TRACKER_RESPONSE_KEY_LEFT + "=" + left
+				+ "&" + RUBTClientConstants.TRACKER_RESPONSE_KEY_EVENT + "=" + RUBTClientConstants.TRACKER_RESPONSE_KEY_COMPLETED;
+
+		HttpURLConnection huc = (HttpURLConnection) new URL(newURL)
+				.openConnection();
+		DataInputStream dis = new DataInputStream(huc.getInputStream());
+
+		int dataSize = huc.getContentLength();
+		byte[] retArray = new byte[dataSize];
+
+		dis.readFully(retArray);
+		dis.close();
+	}
 	
 	public boolean containsPeer(String peerIP) {
 		for (int i = 0; i < peers.size(); i++) {
