@@ -141,7 +141,15 @@ public class RUBTClient {
 				break;
 			}else if(choice == 2){
 				System.out.println("Exiting");
-				trackerResponse.sendTrackerFinishedEvent(announce_url, torrentInfo.info_hash.array(), downloaded, uploaded, torrentInfo.file_length - downloaded)
+				try {
+					trackerResponse.sendTrackerFinishedEvent(announce_url, torrentInfo.info_hash.array(), downloaded, uploaded, torrentInfo.file_length - downloaded);
+				} catch (MalformedURLException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
 				break;
 			}else{
 				System.out.println("Invalid option, please enter 1 or 2");
