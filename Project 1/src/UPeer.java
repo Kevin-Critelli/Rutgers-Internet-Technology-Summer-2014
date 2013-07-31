@@ -43,6 +43,14 @@ public class UPeer extends RUBTClient implements Runnable {
 
 			return true;
 		}
+		
+		//this is BitTorrent Protocl
+		//Place info_hash in correct spot
+		//send back handshake
+		//wait for interested message
+		//send unchoke
+		//wait for requests, send pieces
+		
 		// This is just to verify that the handshake does not come through in
 		// simultaneous fashion
 		// with the foreign client attempting to set up a socket.

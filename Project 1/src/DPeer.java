@@ -302,9 +302,10 @@ public class DPeer extends RUBTClient implements Runnable {
 	
 		//verify hash
 		if(verifyHash(fullPiece, this.torrentInfo.piece_hashes[index].array()) == true){
-			System.out.println("hashes match");
+			//hashes match
 		}else{
-			System.out.println("HASHES DO NOT MATCH???");
+			//hashes do not much
+			return;
 		}
 	
 		// wraps full piece and puts into main piece array

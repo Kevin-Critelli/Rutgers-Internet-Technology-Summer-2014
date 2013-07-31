@@ -11,7 +11,7 @@ public class FrontDoor implements Runnable {
             this.frontDoor = new ServerSocket(port);
         }
             
-        public UPeer ListenForHandshakes() throws Exception {
+        public void ListenForHandshakes() throws Exception {
 			System.out.println("Spawning upload threads");
             while(true)
             {
@@ -19,7 +19,6 @@ public class FrontDoor implements Runnable {
                 UPeer Leech = new UPeer(connectionSocket);
                 new Thread(Leech).start();
             }
-    
         }
         public void run() 
 		{

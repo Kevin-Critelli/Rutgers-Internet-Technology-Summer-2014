@@ -1,4 +1,4 @@
-import java.util.ArrayList;
+import java.util.*;
 import java.net.*;
 import java.io.*;
 import java.nio.ByteBuffer;
@@ -132,12 +132,30 @@ public class RUBTClient {
 			e.printStackTrace();
 		}
 		
+		System.out.println("spawning tracker thread to send announce messages during the interval");
 		TrackerThread t = new TrackerThread();
 		Thread tt = new Thread(t);
 		tt.run();
 		
+		int choice = 0;
+		Scanner sc = new Scanner(System.in);
+		while(true){
+			System.out.println("1) Suspend Program (Save state)");
+			System.out.println("2) Quit");
+			choice = sc.nextInt();
+			
+			if(choice == 1){
+				System.out.println("exiting and saving state");
+				break;
+			}else if(choice == 2){
+				System.out.println("Exiting");
+				break;
+			}else{
+				System.out.println("Invalid option, please enter 1 or 2");
+			}
+		}
+		
 		while (!check()) {} 											// makes sure we have all pieces before writing to file
-				
 		/** Writes data to output file **/
 
 		try {
@@ -150,6 +168,7 @@ public class RUBTClient {
 		}catch (Exception e) {
 			System.out.println("exception thrown writing to file");
 		}
+		System.exit(0);
 	}
 
 	public static boolean check() {
