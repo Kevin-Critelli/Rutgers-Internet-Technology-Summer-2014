@@ -1,16 +1,37 @@
 import java.io.*;
 import java.net.*;
 
+/**
+ * This class represents a server, that waits for peers to contact us for uploads
+ * 
+ * @author Richie VonderSchmidt
+ * */
 
 public class FrontDoor implements Runnable {
         int port = 5110;
         ServerSocket frontDoor;
         
+        /**
+         * FrontDoor Object Constructor
+         * 
+         * @author Richie VonderSchmidt
+         * @throws Exception An Exception object is thrown if an error occurs
+         * */
+        
         public FrontDoor() throws Exception
         {
             this.frontDoor = new ServerSocket(port);
         }
-            
+        
+        /**
+         * This function sits on our server port, and waits for incoming handshakes
+         * than spawns threads (upload peer object) to handle the connection
+         * with that specific peer
+         * 
+         * @throws Exception An exception is thrown if an error occurs
+         * @author Richie VonderSchmidt
+         * */
+        
         public void ListenForHandshakes() throws Exception {
 			System.out.println("Spawning upload threads");
             while(true)
@@ -20,6 +41,13 @@ public class FrontDoor implements Runnable {
                 new Thread(Leech).start();
             }
         }
+        
+        /**
+         * Run method for this thread, listen for handshakes, and spawn threads to handle each connection
+         * 
+         * @author Richie VonderSchmidt
+         * */
+         
         public void run() 
 		{
 			try 
@@ -32,20 +60,3 @@ public class FrontDoor implements Runnable {
 		}
 
 }
-// Create the front door once
-// Listen for a "doorbell" in the thread
-// Cater to each of your "houseguests" in subsequent threads- this is done by
-// calling ListenForHandshakes
-// in a Thread
-
-// Test to see if we get upload requests after Paul Submits 5100 to the tracker!
-
-// UPeers do not have a port and IP that is accessible to us because of the
-
-// nature of the serverSocket connection returned via the accept method. That information is encapsulated.
-// This might need a run method too just to listen to the front door, while also dealing with clients? 
-
-// nature of the serverSocket connection returned via the accept method. That
-// information is encapsulated.
-// This might need a run method too just to listen to the front door, while also
-// dealing with clients
