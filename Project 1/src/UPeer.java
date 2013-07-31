@@ -2,6 +2,12 @@ import java.io.*;
 import java.net.*;
 import java.util.Arrays;
 
+/**
+ * This class represents a connection that handles uploading from a peer
+ * Written by Richie / Kevin
+ * 
+ * */
+
 public class UPeer extends RUBTClient implements Runnable {
 	byte[] HandshakePrefix = new byte[2];
 	public Socket connectionSocket;
@@ -13,6 +19,8 @@ public class UPeer extends RUBTClient implements Runnable {
 
 	/**
 	 * Constructor for objects of class UPeer
+	 * 
+	 * @author Richie Vonder Schmidt
 	 */
 
 	public UPeer(Socket connectionSocket) throws Exception {
@@ -21,6 +29,14 @@ public class UPeer extends RUBTClient implements Runnable {
 		din = new DataInputStream(input);
 		dout = new DataOutputStream(output);
 	}
+	
+	/**
+	 * receives a handshake, verifies information and sends appropriate message for upload to begin
+	 * 
+	 * @author Kevin Critelli, Richie Vonder Schmidt
+	 * @throws Exception An Exception is thrown if method encounters an error
+	 * @return boolean A boolean value is returned, true if this function succeeds, false otherwise
+	 * */
 
 	public boolean ReceiveHandshake() throws Exception {
 		byte HandshakePrefix = 19;
@@ -99,6 +115,14 @@ public class UPeer extends RUBTClient implements Runnable {
 		return 0;
 	}
 	
+	/**
+	 * This function handles the piece/request portion of the upload
+	 * It will wait for a request message, and respond to them sending correct pieces if we have them
+	 * 
+	 * @author Kevin Critelli
+	 * @throws Exception An Exception object is thrown if an error occurs
+	 * */
+	
 	public void upload()throws Exception{
 		//wait for requests
 		while(true){
@@ -125,6 +149,12 @@ public class UPeer extends RUBTClient implements Runnable {
 			//System.out.println("waiting for request");
 		}
 	}
+	
+	/**
+	 * Run method for this thread object, process handshake, than upload to peer
+	 * 
+	 * @author Kevin Critelli, Richi Vonder Schmidt
+	 * */
 	
 	public void run() {
 		try {
