@@ -47,7 +47,7 @@ public class RUBTClient {
 		 * Bencoder2 or TorrentInfo classes to decode the data.
 		 */
 
-		torrentInfo = TorrentInfo.getTorrentInfoFrom(torrentFile);
+		torrentInfo = TorrentInfo.getTorrentInfoFrom(args[0]);
 
 		if (RUBTClientConstants.DEVELOP)
 			System.out.println(torrentInfo);
@@ -169,7 +169,7 @@ public class RUBTClient {
 		try {
 			// save file
 			FileOutputStream fileoutput = new FileOutputStream(new File(
-					simargs[1]));
+					args[1]));
 			for (i = 0; i < pieces.length; i++) {
 				byte[] array = pieces[i].array();
 				fileoutput.write(pieces[i].array());
@@ -185,6 +185,14 @@ public class RUBTClient {
 		}
 		System.exit(0);
 	}
+	
+	/**
+	 * Checks to see if we have all pieces, that way we do not attempt to save the file
+	 * before having all pieces
+	 * 
+	 * @author Kevin Critelli
+	 * @return boolean A boolean value representing whether or not we have all the pieces
+	 * */s
 
 	public static boolean check() {
 		int i;
