@@ -183,8 +183,6 @@ public class TrackerResponse {
 				+ RUBTClientConstants.TRACKER_RESPONSE_KEY_DOWNLOADED + "=" + downloaded
 				+ "&" + RUBTClientConstants.TRACKER_RESPONSE_KEY_LEFT + "=" + left
 				+ "&" + RUBTClientConstants.TRACKER_RESPONSE_KEY_EVENT + "=" + RUBTClientConstants.TRACKER_RESPONSE_KEY_STARTED;
-
-		System.out.println(newURL);
 		
 		HttpURLConnection huc = (HttpURLConnection) new URL(newURL)
 				.openConnection();
