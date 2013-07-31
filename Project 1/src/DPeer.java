@@ -53,7 +53,7 @@ public class DPeer extends RUBTClient implements Runnable {
 	 * @author Kevin Critelli
 	 * @param info_hash
 	 *            20 byte info_hash from the meta file
-	 * @throws Exception
+	 * @throws Exception An Exception object is thrown if an error occurs
 	 * @return true if handshake accepted, false otherwise
 	 * */
 
@@ -80,7 +80,7 @@ public class DPeer extends RUBTClient implements Runnable {
 	 * there are total
 	 * 
 	 * @author Kevin Critelli
-	 * @throws Exception
+	 * @throws Exception An Exception object is thrown if an error occurs
 	 * */
 
 	public void downloadPiece() throws Exception {
