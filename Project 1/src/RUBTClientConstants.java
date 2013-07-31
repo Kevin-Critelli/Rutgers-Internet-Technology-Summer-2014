@@ -23,14 +23,14 @@ public final static String TRACKER_RESPONSE_KEY_LEFT = "left";
 public final static String TRACKER_RESPONSE_KEY_EVENT = "event";
 public final static String TRACKER_RESPONSE_KEY_STARTED = "started";
 public final static String TRACKER_RESPONSE_KEY_COMPLETED = "completed";
+public static final String TRACKER_RESPONSE_KEY_INCOMPLETE = "incomplete";
+public static final String TRACKER_RESPONSE_KEY_STOPPED = "stopped";
 
 public static final ByteBuffer TRACKER_RESPONSE_KEY_FAILURE = ByteBuffer.wrap("failure reason".getBytes());
 public static final ByteBuffer TRACKER_RESPONSE_KEY_PEERS = ByteBuffer.wrap("peers".getBytes());
 public static final ByteBuffer TRACKER_RESPONSE_KEY_INTERVAL = ByteBuffer.wrap("interval".getBytes());
 public static final ByteBuffer TRACKER_RESPONSE_KEY_MIN_INTERVAL = ByteBuffer.wrap("min interval".getBytes());
 public static final ByteBuffer TRACKER_RESPONSE_KEY_COMPLETE = ByteBuffer.wrap("complete".getBytes());
-public static final ByteBuffer TRACKER_RESPONSE_KEY_INCOMPLETE = ByteBuffer.wrap("incomplete".getBytes());
-public static final ByteBuffer TRACKER_RESPONSE_KEY_STOPPED = ByteBuffer.wrap("stopped".getBytes());
 
 public final static String ACCEPTABLE_PEER_1 = "128:6:171:3";
 public final static String ACCEPTABLE_PEER_2 = "128:6:171:4";

@@ -114,8 +114,8 @@ public class RUBTClient {
 			new Thread(p).start();
 		}
 
-		DPeer p = new DPeer("192.168.1.5", 5120);
-		new Thread(p).start();
+		//DPeer p = new DPeer("192.168.1.5", 5120);
+		//new Thread(p).start();
 
 		try {
 			System.out
