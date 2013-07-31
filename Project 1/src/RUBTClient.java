@@ -192,7 +192,7 @@ public class RUBTClient {
 	 * 
 	 * @author Kevin Critelli
 	 * @return boolean A boolean value representing whether or not we have all the pieces
-	 * */s
+	 * */
 
 	public static boolean check() {
 		int i;
