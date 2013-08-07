@@ -33,7 +33,7 @@ public class TrackerResponse {
 	public String trackerID;
 	public int complete;
 	public int incomplete;
-	private ArrayList<DPeer> peers;
+	public ArrayList<DPeer> peers;
 
 	public TrackerResponse() {
 
@@ -144,7 +144,10 @@ public class TrackerResponse {
 				peerIP += ":";
 				peerIP += peersResponse.get() & 0xff;
 
-				int peerPort = peersResponse.get() * 256 + peersResponse.get();
+				//CHANGED CODE HERE SO WE CAN CONNECT TO MORE PEERS @Kevin
+				int firstByte = (0x000000FF & ((int)peersResponse.get()));
+                int secondByte = (0x000000FF & ((int)peersResponse.get()));
+                int peerPort  = (firstByte << 8 | secondByte);
 				
 				this.peers.add(new DPeer(peerPort, peerIP));
 			} catch (Exception e) {

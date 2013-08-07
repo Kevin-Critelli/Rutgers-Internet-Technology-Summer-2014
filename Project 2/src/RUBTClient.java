@@ -45,65 +45,60 @@ public class RUBTClient {
 		if (RUBTClientConstants.DEVELOP) 
 			System.out.println(trackerResponse);
 		
-		
 		announce_url = trackerResponse.announceURL;
-		
-		//gets list of acceptable peers
-		peers = trackerResponse.getAcceptablePeers();
 
 		RUBTClientUtils.initializeFields();
 		
 		//spawn download threads
-		for (i = 0; i < peers.size(); i++) {
-			peers.get(i).ip = peers.get(i).ip.replaceAll(":",".");
-			new Thread(peers.get(i)).start();
+		for (i = 0; i < trackerResponse.peers.size(); i++) {
+			trackerResponse.peers.get(i).ip = trackerResponse.peers.get(i).ip.replaceAll(":",".");
+			new Thread(trackerResponse.peers.get(i)).start();
 		}
 		
+		/*
 		//sets up front door object to listen for peers and spawn upload threads
 		f = new FrontDoor();
 		new Thread(f).start();
 
 		//spawn tracker thread to send updates during time interval
 		t = new TrackerThread();
-		new Thread(t).start();
+		new Thread(t).start();*/
 
 		//small interface to allow them to exit the program gracefully?
 		sc = new Scanner(System.in);
 		while (true) {
-			System.out.println("1) Suspend Program (Save state)");						//just quits program, saving state not implemented yet
-			System.out.println("2) Quit");
+			System.out.println("1) quit program");						//just quits program, saving state not implemented yet
 			choice = sc.nextInt();
 
 			if (choice == 1) {
 				System.out.println("exiting and saving state");
-				break;
-			} else if (choice == 2) {
-				System.out.println("Exiting");
-				break;
-			} else {
-				System.out.println("Invalid option, please enter 1 or 2");
+			
+				if(RUBTClientUtils.check()) {
+					System.out.println("We have finished downloading all pieces, attempting to save file");
+						try {
+					// save file
+					fileoutput = new FileOutputStream(new File(torrentInfo.file_name));
+						
+					for (i = 0; i < pieces.length; i++) {
+						byte[] array = pieces[i].array();
+						fileoutput.write(pieces[i].array());
+					}
+					
+					fileoutput.close();
+						
+					//send stopped event to tracker
+					trackerResponse.sendTrackerFinishedStopped(announce_url,torrentInfo.info_hash.array(), downloaded, uploaded, 0);
+					}catch(Exception e){
+						e.printStackTrace();
+					}
+					break;
+				}else{
+					System.out.println("wait were still dowloading (at this point we would save state and resume)");
+				}
+			}else {
+				System.out.println("Invalid option, please enter 1 to quit");
 			}
 		}
-		
-		while (!RUBTClientUtils.check()) {}												 // makes sure we have all pieces before writing to file
-		/** Writes data to output file **/
-
-		try {
-			// save file
-			fileoutput = new FileOutputStream(new File(args[1]));
-			
-			for (i = 0; i < pieces.length; i++) {
-				byte[] array = pieces[i].array();
-				fileoutput.write(pieces[i].array());
-			}
-			
-			//send stopped event to tracker
-			trackerResponse.sendTrackerFinishedStopped(announce_url,
-					torrentInfo.info_hash.array(), downloaded, uploaded, 0);
-		}catch(Exception e){
-			e.printStackTrace();
-		}
-
 		System.exit(0);
 	}
 }

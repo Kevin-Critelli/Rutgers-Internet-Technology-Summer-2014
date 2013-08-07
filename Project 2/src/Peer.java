@@ -15,6 +15,7 @@ public abstract class Peer extends RUBTClient implements Runnable {
 	public DataInputStream din = null;
 	public OutputStream output = null;
 	public InputStream input = null;
+	boolean isChoked = false;
 
 	public Peer(int port, String ip) {
 		this.port = port;

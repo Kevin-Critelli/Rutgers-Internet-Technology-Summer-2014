@@ -21,6 +21,7 @@ public class UPeer extends Peer{
 	public UPeer(Socket connectionSocket){
 		super(-1,"-1");														//must invoke superclass, these fields are not used those for upeer, so just pass -1 for both
 		try{
+			System.out.println("new upeer");
 			input = connectionSocket.getInputStream();
 			output = connectionSocket.getOutputStream();
 			din = new DataInputStream(input);

@@ -13,6 +13,8 @@ import java.util.ArrayList;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.net.Socket;
+import java.io.*;
+import java.net.*;
  
 public class DPeer extends Peer{
 
@@ -60,25 +62,36 @@ public class DPeer extends Peer{
 	}
 
 	/**
-	 * This function downloads all available pieces that the peer has that we do
-	 * not have it starts requesting pieces from 0 up to however many pieces
-	 * there are total
+	 * This function attemps to request and download a piece from the peer that
+	 * we do not have or aren't already currently downloading
 	 * 
 	 * @author Kevin Critelli
 	 * @throws Exception An Exception object is thrown if an error occurs
 	 * */
 
-	public synchronized void downloadPiece() throws Exception {
+	public void downloadPiece() throws Exception {
 		Message interestedMessage, request;
-		int i=0, dif=0, lastPieceSize=0, count=16384, numPieces=0, begin=0;
+		int i=0, count=16384, numPieces=0, begin=0;
+		byte messageID = 0;
 		
 		interestedMessage = new Message(1, (byte) RUBTClientConstants.MESSAGE_TYPE_INTERESTED);
 		
 		//Read Response from handshake, potential bit field
 		try{
 			socket.setSoTimeout(6000);
-			if(Message.readMessage(din) == 5){}										/*bit field message*/
-			else{din.readByte();}													/*no bitfield message*/
+			messageID = Message.readMessage(din);
+			if(messageID == 5){
+				//bitfield
+			}										
+			else{
+				//some other message
+				if(messageID == 0){
+					System.out.println("I got choked " + ip + " " + port);
+					Thread.sleep(00020);
+				}else if(messageID == -1){
+					//keep alive
+				}
+			}																
 		}catch(Exception e){
 			//Timed out waiting for bit message, proceeding to send interested message
 		}
@@ -89,118 +102,191 @@ public class DPeer extends Peer{
 		socket.setSoTimeout(130000);
 		
 		//waiting for unchoke message
-		if(Message.readMessage(din) ==  1){din.readByte();}											/*unchoked*/
-		else{}																						/*no unchoke message*/
-
-		dif = this.torrentInfo.piece_hashes.length - 1;
-		lastPieceSize = this.torrentInfo.file_length - (dif * this.torrentInfo.piece_length);
-
-		// READY TO EXCHANGE DATA
-		// loop until we have each piece
-		while (numPieces != this.torrentInfo.piece_hashes.length) {
-			// loop until we have each subset of data to make up the piece
-			while (true) {
-				//this block is for the last piece which is variable size
-				if (numPieces + 1 == this.torrentInfo.piece_hashes.length) {
-
-					if (this.requests[numPieces] == true
-							&& this.have[numPieces] == true) {
-						// already have last piece
-						numPieces++;
-						break;
-					}else{
-						while (true) {
-
-							this.requests[numPieces] = true;
-							request = new Message(13, (byte) 6);
-
-							if (lastPieceSize < 16384) {
-								count = lastPieceSize;
-							} else {
-								count = 16384;
-							}
-
-							lastPieceSize = lastPieceSize - 16384;
-							request.setPayload(null, -1, -1, count, begin,numPieces, -1);
-							dout.write(request.message);
-							dout.flush();
-							socket.setSoTimeout(130000);
-							
-							if(Message.readMessage(din) == 7){}								/*piece message*/
-							else{}															/*no piece message*/
-							
-							pieceSubset = new byte[count];
-							
-							for (i = 0; i < count; i++) {
-								pieceSubset[i] = din.readByte();
-							} // save block
-							
-							if(this.have[numPieces] != true){this.downloaded += count;}
-							this.subPieces.add(pieceSubset);
-
-							if (lastPieceSize < 0) {
-								updatePieces(numPieces);
-								numPieces++;
-								
-								//SEND EVEN=COMPLETED TRACKER HERE
-								//UPDATE DOWNLOADED TOTAL NUMBER OF BYTES THUS FAR	
-								this.trackerResponse.sendTrackerFinishedEvent(this.announce_url,this.torrentInfo.info_hash.array(),
-																			  this.downloaded,this.uploaded,this.torrentInfo.file_length - this.downloaded);
-								break;
-							}
-							begin += count;
-						}
-						break;
-					}
-				} else {
-						//this else block is for pieces that are fixed size ie everything but the last piece
-						if(this.requests[numPieces] == true && this.have[numPieces] == true){
-							//we have the piece already
-							numPieces++;
-							break;
-						}else{
-							while(true){
-								this.requests[numPieces] = true;
-								request = new Message(13, (byte) 6);
-								request.setPayload(null, -1, -1, 16384, begin, numPieces,-1);
-								dout.write(request.message);
-								dout.flush();
-								socket.setSoTimeout(1300000);
-								
-								if(Message.readMessage(din) == 7){} 										/*piece message*/
-								else{}																		/*no piece message*/
-								
-								pieceSubset = new byte[16384];
-
-								for (i = 0; i < 16384; i++) {  			
-									pieceSubset[i] = din.readByte();
-								} // save block
-								
-								
-								if(this.have[numPieces] != true){this.downloaded += count;}
-								this.subPieces.add(pieceSubset);
-
-								if (begin + 16384 == this.torrentInfo.piece_length) {
-									
-									if(numPieces == 0){
-										//send event = started to tracker
-							
-									}
-									//UPDATED DOWNLOADED TOTAL NUMBER OF BYTES THUS FAR
-									
-									updatePieces(numPieces);
-									numPieces++;
-									begin = 0;
-									break;
-								} else {
-									begin += 16384;
-								}
-							}
-						}
-					break;
-				}
+		messageID = Message.readMessage(din);
+		if(messageID ==  1){
+			//unchoked
+		}										
+		else{
+			//some other message
+			if(messageID == 0){
+				System.out.println("I got choked " + ip + " " + port);
+				Thread.sleep(000020);
+			}else if(messageID == -1){
+				//keep alive
+			}
+		}																						
+						
+		while(true){
+			//call synchronized function to check what piece we need
+			int piece_index = get_piece_to_request();
+			
+			//we have all pieces, so just return and exit thread
+			if(piece_index == -1){ 
+				break;
+			};
+			
+			int retVal = get_piece_from_peer(piece_index);
+			
+			if(retVal == -1){
+				System.out.println("peer didn't have that piece" + piece_index);
+			}else{
+				updatePieces(piece_index);
 			}
 		}
+	}
+	
+	/**
+	 * This function gets the actual piece from the peer, it has two main portions
+	 * requesting the last piece, and requesting any other piece besides the last
+	 * Last piece is variable size, rest of the pieces are fixed
+	 * This function just sends requests until we receive the whole block
+	 * 
+	 * @author Kevin Critelli
+	 * @param index int representing the index of the piece we want to get from peer
+	 * @throws Exception Throws an exception if an error occurs
+	 * @return int Returns 1 if successful, or -1 if some error occurred
+	 * */
+	
+	public int get_piece_from_peer(int index)throws Exception{
+		int totalRequested = 0;
+		Message requestMessage;
+		int i=0, r=0, dif=0, lastPieceSize=0;
+		byte messageID = 0;
+
+		//check what piece were requesting
+		if(index < this.torrentInfo.piece_hashes.length-1){
+			//regular piece
+			do{
+				//send request message with appropriate size, offset, and index
+				requestMessage = new Message(13,(byte)6);
+				requestMessage.setPayload(null,-1,-1,16384,totalRequested,index,-1);
+				totalRequested += 16384;
+				dout.write(requestMessage.message);
+				dout.flush();
+				socket.setSoTimeout(1300000);
+				
+				//wait for piece message
+				messageID = Message.readMessage(din);
+				if(messageID == 7){ 													
+					//piece message
+					
+					pieceSubset = new byte[16384];
+
+					for (i = 0; i < 16384; i++) {  			
+						pieceSubset[i] = din.readByte();
+					} // save block
+					
+					this.subPieces.add(pieceSubset);
+				}else{
+					if(messageID == 0){
+						System.out.println("I got choked " + ip + " " + port);
+						Thread.sleep(00020);
+						this.requests[index] = false;
+						return -1;
+					}else if(messageID == -1){
+						//received keep-alive when expecting piece message, go back and wait for piece message
+						System.out.println("I got a keep alive when expecting a piece message, going back and waiting for piece message " + ip + " " + port);
+						totalRequested = totalRequested - 16384;
+					}
+				}																						
+			}while(totalRequested != this.torrentInfo.piece_length);							//keep going until we have requesting the total amount of the piece
+			//downloaded the whole piece
+		}else if(index == this.torrentInfo.piece_hashes.length-1){
+			
+			//last piece
+			dif = this.torrentInfo.piece_hashes.length - 1;
+			lastPieceSize = this.torrentInfo.file_length - (dif * this.torrentInfo.piece_length);
+			
+			do{
+				if((totalRequested + 16384) < lastPieceSize){
+					//request 16384, send request
+					requestMessage = new Message(13,(byte)6);
+					requestMessage.setPayload(null,-1,-1,16384,totalRequested,index,-1);
+					totalRequested += 16384;
+					dout.write(requestMessage.message);
+					dout.flush();
+					socket.setSoTimeout(1300000);
+					
+					//wait for piece message
+					messageID = Message.readMessage(din);
+					if(messageID == 7){												
+						//piece message
+						
+						pieceSubset = new byte[16384];
+
+						for (i = 0; i < 16384; i++) {  			
+							pieceSubset[i] = din.readByte();
+						} // save block
+						
+						this.subPieces.add(pieceSubset);
+					}else{
+						if(messageID == 0){
+							System.out.println("I got choked " + ip + " " + port);
+							Thread.sleep(00020);
+						}else if(messageID == -1){
+							//keep alive
+						}
+						
+						this.requests[index] = false;
+						return -1;
+					}		
+				}else{
+					//request variable amount of whats left, send request
+					requestMessage = new Message(13,(byte)6);
+					requestMessage.setPayload(null,-1,-1,lastPieceSize-totalRequested,totalRequested,index,-1);
+					r = lastPieceSize-totalRequested;
+					totalRequested += lastPieceSize-totalRequested;
+					dout.write(requestMessage.message);
+					dout.flush();
+					socket.setSoTimeout(1300000);
+					
+					//wait for piece message
+					messageID = Message.readMessage(din);
+					if(messageID == 7){												
+						//piece message
+						
+						pieceSubset = new byte[r];
+
+						for (i = 0; i < r; i++) {  			
+							pieceSubset[i] = din.readByte();
+						} // save block
+						
+						this.subPieces.add(pieceSubset);
+					}else{
+						if(messageID == 0){
+							System.out.println("I got choked " + ip + " " + port);
+							Thread.sleep(00020);
+						}else if(messageID == -1){
+							//keep alive
+						}	
+						this.requests[index] = false;
+						return -1;
+					}	
+				}
+			}while(totalRequested != lastPieceSize);					//keep going until the total amount we requested is equal to the size of the piece
+			//done downloading piece
+		}
+		return 1;
+	}
+	
+	/**
+	 * This function determines what piece we need to request from the peer
+	 * It is synchronized so that no threads access the 'Requested' array at the same time,
+	 * therefore avoiding two threads requesting the same piece
+	 * 
+	 * @author Kevin Critelli
+	 * @return int Returns an int value representing the index of the piece that this thread should request from peer
+	 * 
+	 * */
+	
+	public synchronized int get_piece_to_request(){
+		for(int i=0;i<this.requests.length;i++){
+			if(this.requests[i] == false){
+				this.requests[i] = true;
+				return i;
+			}
+		}
+		return -1;
 	}
 	
 	/**
@@ -223,25 +309,29 @@ public class DPeer extends Peer{
 	}
 	
 	/**
-	 * This function updates our main array of pieces, and sets a flag in the have array
-	 * notifying other threads that we now have this piece 
+	 * Synchronized function that updates our main array of pieces, and sets a flag in the have array
+	 * notifying other threads that we now have this piece. This function is synchronized
+	 * to make sure no two threads write into our main array of pieces at the same time, and no two threads
+	 * are updating the 'Have' array at the same time
 	 * 
 	 * @author Kevin Critelli
 	 * @param index int representing the index of the piece we just downloaded and
 	 *              are about to write into our main piece array
+	 * @throws Exception Throws an exception if an error occurs
 	 * */
 
 	public synchronized void updatePieces(int index) throws Exception{
 		byte[] fullPiece;
 		int size=0, count=0, i=0; 
-
-		this.requests[index] = true;
-
+		
+		//Get the size of the full piece
 		for (i = 0; i < this.subPieces.size(); i++) {
 			size += this.subPieces.get(i).length;
 		}
+		
 		fullPiece = new byte[size];
-
+		
+		//copy the pieces into fullPiece array
 		for (i = 0; i < this.subPieces.size(); i++) {
 			System.arraycopy(this.subPieces.get(i),0,fullPiece,count,this.subPieces.get(i).length);
 			count += this.subPieces.get(i).length;
@@ -250,8 +340,10 @@ public class DPeer extends Peer{
 		//verify hash
 		if(verifyHash(fullPiece, this.torrentInfo.piece_hashes[index].array())){
 			//hashes match
+			//System.out.println("HASH MATCH");
 		}else{
-			//hashes do not much
+			//hashes do not much, do something close streams?
+			//System.out.println("HASH DO NOT MATCH");
 		}
 	
 		// wraps full piece and puts into main piece array
@@ -259,10 +351,6 @@ public class DPeer extends Peer{
 		this.pieces[index] = buffer;
 		this.have[index] = true;
 		this.subPieces = new ArrayList<byte[]>();
-	}
-
-	public String toString() {
-		return "" + ip + ":" + port;
 	}
 
 	/**
@@ -274,26 +362,45 @@ public class DPeer extends Peer{
 
 	public void run() {
 		try{
+			//open socket and streams to peer
 			socket = new Socket(ip, port);
 			input = socket.getInputStream();
 			output = socket.getOutputStream();
 			din = new DataInputStream(input);
 			dout = new DataOutputStream(output);
-		
+			
+			System.out.println("successfull connection to ip " + ip + " port " + port);
+			
+			//send the handshake to the peer
 			if (!(sendHandshake(this.torrentInfo.info_hash.array()))) {
 				System.out.println("Handshake failed");
 				return;
 			}
 			
+			//handshake accepted, start requesting pieces from peer
 			downloadPiece();
 	
+			//finished downloading all pieces, close all streams and exit
 			din.close();
 			input.close();
 			dout.close();
 			output.close();
 			socket.close();
-		}catch(Exception e){
-			e.printStackTrace();
+		}catch(UnknownHostException e){
+			System.out.println("Unknownhost with Thread " + ip + " port " + port);
+		}catch(IOException e){
+			System.out.println("IOException with Thread " + ip + " port " + port);
+		}catch(SecurityException e){
+			System.out.println("SecurityException with Thread " + ip + " port " + port);
+		}catch(IllegalArgumentException e){
+			System.out.println("IllegalArgumentException " + ip + " port " + port);
 		}
+		catch(Exception e){
+			System.out.println("Exception with Thread " + ip + " port " + port);
+		}
+	}
+	
+	public String toString() {
+		return "" + ip + ":" + port;
 	}
 }

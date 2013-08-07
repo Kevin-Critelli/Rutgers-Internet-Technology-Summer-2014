@@ -36,7 +36,7 @@ public class FrontDoor implements Runnable {
             while(true){
                 Socket connectionSocket = frontDoor.accept();
                 UPeer Leech = new UPeer(connectionSocket);
-                //new Thread(Leech).start();
+                new Thread(Leech).start();
             }
         }
         
