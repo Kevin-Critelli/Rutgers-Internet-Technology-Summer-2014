@@ -6,6 +6,7 @@ import java.io.DataOutputStream;
 import java.io.DataInputStream;
 import java.io.OutputStream;
 import java.io.InputStream;
+import java.net.Socket;
 
 public abstract class Peer extends RUBTClient implements Runnable {
 
@@ -25,5 +26,18 @@ public abstract class Peer extends RUBTClient implements Runnable {
 	public String toString() {
 		return "" + ip + ":" + port;
 	}
-
+	
+	public void closeConnection() throws Exception{
+		din.close();
+		input.close();
+		dout.close();
+		output.close();
+	}
+	
+	public void initConnection(Socket socket) throws Exception{
+		input = socket.getInputStream();
+		output = socket.getOutputStream();
+		din = new DataInputStream(input);
+		dout = new DataOutputStream(output);
+	}
 }

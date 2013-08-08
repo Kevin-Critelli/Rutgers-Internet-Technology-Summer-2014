@@ -21,11 +21,7 @@ public class UPeer extends Peer{
 	public UPeer(Socket connectionSocket){
 		super(-1,"-1");														//must invoke superclass, these fields are not used those for upeer, so just pass -1 for both
 		try{
-			System.out.println("new upeer");
-			input = connectionSocket.getInputStream();
-			output = connectionSocket.getOutputStream();
-			din = new DataInputStream(input);
-			dout = new DataOutputStream(output);
+			initConnection(connectionSocket);
 		}catch(Exception e){
 			e.printStackTrace();
 		}
@@ -114,10 +110,7 @@ public class UPeer extends Peer{
 		try{
 			ReceiveHandshake(this.torrentInfo.info_hash.array());
 			//at this point, upload is complete, close all streams, exit thread
-			din.close();
-			input.close();
-			dout.close();
-			output.close();
+			closeConnection();
 		}catch(Exception e){
 			e.printStackTrace();
 		}

@@ -364,10 +364,7 @@ public class DPeer extends Peer{
 		try{
 			//open socket and streams to peer
 			socket = new Socket(ip, port);
-			input = socket.getInputStream();
-			output = socket.getOutputStream();
-			din = new DataInputStream(input);
-			dout = new DataOutputStream(output);
+			initConnection(socket);
 			
 			System.out.println("successfull connection to ip " + ip + " port " + port);
 			
@@ -381,10 +378,7 @@ public class DPeer extends Peer{
 			downloadPiece();
 	
 			//finished downloading all pieces, close all streams and exit
-			din.close();
-			input.close();
-			dout.close();
-			output.close();
+			closeConnection();
 			socket.close();
 		}catch(UnknownHostException e){
 			System.out.println("Unknownhost with Thread " + ip + " port " + port);
