@@ -6,6 +6,9 @@ import java.nio.ByteBuffer;
 import java.util.Scanner;
 import java.io.File;
 
+import javax.swing.JFrame;
+import javax.swing.JOptionPane;
+
 public class RUBTClient {
 	
 	public static ByteBuffer[] pieces = null;
@@ -33,8 +36,11 @@ public class RUBTClient {
 		DPeer p;
 		int i=0, choice=0;
 		
-		//parse torrent file
-		torrentInfo = TorrentInfo.getTorrentInfoFrom(args[0]);
+		
+		JFrame frame = new JFrame("InputDialog Example #1");
+	    String torrentFile = JOptionPane.showInputDialog(frame, "Where's your torrent file?");
+
+		torrentInfo = TorrentInfo.getTorrentInfoFrom(torrentFile);
 		
 		if (RUBTClientConstants.DEVELOP)
 			System.out.println(torrentInfo);
