@@ -40,7 +40,7 @@ public class RUBTClient implements ActionListener {
 
 		JFrame frame = new JFrame("RUBT Client");
 		String torrentFile = JOptionPane.showInputDialog(frame,
-				"Where's your torrent file?", "cs352.png.torrent");
+				"Where's your torrent file?", "project2.torrent");
 
 		torrentInfo = TorrentInfo.getTorrentInfoFrom(torrentFile);
 		trackerResponse = new TrackerResponse(torrentInfo);
@@ -50,6 +50,10 @@ public class RUBTClient implements ActionListener {
 		mainPanel.setLayout(new BorderLayout());
 		TorrentInfoView tiv = new TorrentInfoView(torrentInfo);
 		mainPanel.add(tiv, BorderLayout.NORTH);
+		
+		JProgressBar pg = new JProgressBar();
+		mainPanel.add(pg, BorderLayout.CENTER);
+		
 		frame.add(mainPanel);
 		
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -59,12 +63,19 @@ public class RUBTClient implements ActionListener {
 		RUBTClientUtils.initializeFields();
 
 		for (i = 0; i < trackerResponse.peers.size(); i++) {
-			//new Thread(trackerResponse.peers.get(i)).start();
+			trackerResponse.peers.get(i).ip = trackerResponse.peers.get(i).ip.replaceAll(":",".");
+			new Thread(trackerResponse.peers.get(i)).start();
+		}
+		
+		t = new TrackerThread();
+		new Thread(t).start();
+		
+		while (true) {
+			int done = (int)(((float)downloaded / (float)torrentInfo.file_length) * 100);
+			pg.setValue(done);
 		}
 
 		// spawn tracker thread to send updates during time interval
-		//t = new TrackerThread();
-		//new Thread(t).start();
 	}
 
 	@Override

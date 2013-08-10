@@ -11,7 +11,7 @@ public class TorrentInfoView extends JPanel {
 	JLabel fileLengthLabel;
 	
 	public TorrentInfoView(TorrentInfo info) {
-		this.setLayout(new GridLayout(0,3));
+		this.setLayout(new GridLayout(1,3));
 		
 		filenameLabel = new JLabel();
 		filenameLabel.setText("Filename: " + info.file_name);
