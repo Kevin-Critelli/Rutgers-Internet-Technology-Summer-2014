@@ -20,7 +20,7 @@ public abstract class Peer extends RUBTClient implements Runnable {
 
 	public Peer(int port, String ip) {
 		this.port = port;
-		this.ip = ip;
+		this.ip = ip.replaceAll(":", ".");
 	}
 
 	public String toString() {

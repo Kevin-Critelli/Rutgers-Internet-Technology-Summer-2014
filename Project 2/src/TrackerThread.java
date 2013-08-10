@@ -13,7 +13,7 @@ public class TrackerThread extends RUBTClient implements Runnable {
 				trackerResponse = trackerResponse.getTrackerResponse(announce_url,
 						torrentInfo.info_hash.array(), downloaded, uploaded,
 						left);
-				//Sleep for the interval, than re-announce with updated information
+
 				
 				System.out.println("Sleeping for " + trackerResponse.interval + " seconds");
 				Thread.sleep(trackerResponse.interval);

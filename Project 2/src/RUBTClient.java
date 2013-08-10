@@ -6,6 +6,9 @@ import java.nio.ByteBuffer;
 import java.util.Scanner;
 import java.io.File;
 
+import javax.swing.JFrame;
+import javax.swing.JOptionPane;
+
 public class RUBTClient {
 	
 	public static ByteBuffer[] pieces = null;
@@ -37,8 +40,11 @@ public class RUBTClient {
 		DPeer p;
 		int i=0, choice=0;
 		
+		JFrame frame = new JFrame("RUBT Client");
+	    String torrentFile = JOptionPane.showInputDialog(frame, "Where's your torrent file?");
+		
 		//parse torrent file
-		torrentInfo = TorrentInfo.getTorrentInfoFrom(args[0]);
+		torrentInfo = TorrentInfo.getTorrentInfoFrom(torrentFile);
 		
 		if (RUBTClientConstants.DEVELOP)
 			System.out.println(torrentInfo);
@@ -57,7 +63,6 @@ public class RUBTClient {
 		
 		//spawn download threads
 		for (i = 0; i < trackerResponse.peers.size(); i++) {
-			trackerResponse.peers.get(i).ip = trackerResponse.peers.get(i).ip.replaceAll(":",".");
 			new Thread(trackerResponse.peers.get(i)).start();
 		}
 		
