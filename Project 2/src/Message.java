@@ -301,16 +301,16 @@ public class Message {
 	public static final byte readMessage(DataInputStream din)throws Exception{
 		int length = din.readInt(); 
 		
-		if(length == 0){ System.out.println("Keep-Alive"); return -1;}
+		if(length == 0){return -1;}
 		
 		byte id = din.readByte();
 		
 		switch(id){
 			case 0: //choke message
-				System.out.println("choke");
+				//System.out.println("choke");
 					return id;
 			case 1: //unchoke message
-					System.out.println("unchoked");
+					//System.out.println("unchoked");
 					return id;
 			case 2: //interested message
 					return id;
@@ -319,7 +319,7 @@ public class Message {
 			case 4: //have message
 					return id;
 			case 5: //bitfield message 
-					System.out.println("bit field");
+					//System.out.println("bit field");
 					for(int i =0;i<length-1;i++){
 						din.readByte();
 					}

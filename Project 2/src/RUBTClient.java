@@ -13,6 +13,10 @@ public class RUBTClient {
 	public static boolean[] have = null;
 	public static int downloaded = 0;
 	public static int uploaded = 0;
+	public static int left = 0;
+	public static boolean isStarted = false;							//first request must contain started event
+	public static boolean isStopped = false;							//used when client is shut down gracefully
+	public static boolean isCompleted = false;				
 	public static TorrentInfo torrentInfo = null;
 	public static TrackerResponse trackerResponse = null;
 	public static String announce_url = "";
@@ -44,6 +48,8 @@ public class RUBTClient {
 
 		if (RUBTClientConstants.DEVELOP) 
 			System.out.println(trackerResponse);
+			
+		System.out.println("File length = " + torrentInfo.file_length);
 		
 		announce_url = trackerResponse.announceURL;
 
@@ -58,11 +64,11 @@ public class RUBTClient {
 		/*
 		//sets up front door object to listen for peers and spawn upload threads
 		f = new FrontDoor();
-		new Thread(f).start();
+		new Thread(f).start();*/
 
 		//spawn tracker thread to send updates during time interval
 		t = new TrackerThread();
-		new Thread(t).start();*/
+		new Thread(t).start();
 
 		//small interface to allow them to exit the program gracefully?
 		sc = new Scanner(System.in);
@@ -76,18 +82,22 @@ public class RUBTClient {
 				if(RUBTClientUtils.check()) {
 					System.out.println("We have finished downloading all pieces, attempting to save file");
 						try {
-					// save file
-					fileoutput = new FileOutputStream(new File(torrentInfo.file_name));
-						
-					for (i = 0; i < pieces.length; i++) {
-						byte[] array = pieces[i].array();
-						fileoutput.write(pieces[i].array());
-					}
-					
-					fileoutput.close();
-						
-					//send stopped event to tracker
-					trackerResponse.sendTrackerFinishedStopped(announce_url,torrentInfo.info_hash.array(), downloaded, uploaded, 0);
+							// save file
+							fileoutput = new FileOutputStream(new File(torrentInfo.file_name));
+									
+							for (i = 0; i < pieces.length; i++) {
+								byte[] array = pieces[i].array();
+								fileoutput.write(pieces[i].array());
+							}
+							
+							fileoutput.close();
+								
+							System.out.println("End Download " + downloaded);
+							System.out.println("End Left " + left);
+								
+							//send stopped event to tracker
+							trackerResponse.sendTrackerFinishedStopped(announce_url,torrentInfo.info_hash.array(), downloaded, uploaded, 0);
+							t.stopExecution();
 					}catch(Exception e){
 						e.printStackTrace();
 					}

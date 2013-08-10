@@ -46,7 +46,6 @@ public class UPeer extends Peer{
 			return false;
 		} else {
 			//place info_hash in correct spot
-				
 			//send back handshake
 			dout.write(returnhandshake.message);
 			dout.flush();
@@ -61,9 +60,7 @@ public class UPeer extends Peer{
 			//if interested send unchoke message
 			Message unchoke = new Message(1,(byte)1);
 			dout.write(unchoke.message);
-			
-			//call upload function
-			upload();
+		
 			return true;
 		}
 	}
@@ -108,7 +105,10 @@ public class UPeer extends Peer{
 	
 	public void run() {
 		try{
-			ReceiveHandshake(this.torrentInfo.info_hash.array());
+			if(ReceiveHandshake(this.torrentInfo.info_hash.array())){
+				//call upload function
+				upload();
+			}
 			//at this point, upload is complete, close all streams, exit thread
 			closeConnection();
 		}catch(Exception e){

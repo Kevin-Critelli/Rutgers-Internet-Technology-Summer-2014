@@ -63,7 +63,9 @@ public class DPeer extends Peer{
 
 	/**
 	 * This function attemps to request and download a piece from the peer that
-	 * we do not have or aren't already currently downloading
+	 * we do not have or aren't already currently downloading, it calls get_piece_to_request
+	 * in order to find out what piece to request, it than calls get_piece_from_peer with the
+	 * return value from the previous call in order to actually download the piece
 	 * 
 	 * @author Kevin Critelli
 	 * @throws Exception An Exception object is thrown if an error occurs
@@ -71,29 +73,12 @@ public class DPeer extends Peer{
 
 	public void downloadPiece() throws Exception {
 		Message interestedMessage, request;
-		int i=0, count=16384, numPieces=0, begin=0;
-		byte messageID = 0;
+		int i=0, count=16384, numPieces=0, begin=0, messageID =0;
 		
 		interestedMessage = new Message(1, (byte) RUBTClientConstants.MESSAGE_TYPE_INTERESTED);
 		
-		//Read Response from handshake, potential bit field
-		try{
-			socket.setSoTimeout(6000);
-			messageID = Message.readMessage(din);
-			if(messageID == 5){
-				//bitfield
-			}										
-			else{
-				//some other message
-				if(messageID == 0){
-					System.out.println("I got choked " + ip + " " + port);
-					Thread.sleep(00020);
-				}else if(messageID == -1){
-					//keep alive
-				}
-			}																
-		}catch(Exception e){
-			//Timed out waiting for bit message, proceeding to send interested message
+		if(getResponse() == (int)RUBTClientConstants.MESSAGE_TYPE_BITFIELD){				//Add timing out for no bit fields
+			System.out.println("hey we got a bit field!");
 		}
 		
 		//send interested message
@@ -101,19 +86,11 @@ public class DPeer extends Peer{
 		dout.flush();
 		socket.setSoTimeout(130000);
 		
-		//waiting for unchoke message
-		messageID = Message.readMessage(din);
-		if(messageID ==  1){
-			//unchoked
-		}										
-		else{
-			//some other message
-			if(messageID == 0){
-				System.out.println("I got choked " + ip + " " + port);
-				Thread.sleep(000020);
-			}else if(messageID == -1){
-				//keep alive
-			}
+		messageID = getResponse();
+		if(messageID == 1){
+			System.out.println("were unchoked!");
+		}else if(messageID == -1){
+			return;
 		}																						
 						
 		while(true){
@@ -128,7 +105,8 @@ public class DPeer extends Peer{
 			int retVal = get_piece_from_peer(piece_index);
 			
 			if(retVal == -1){
-				System.out.println("peer didn't have that piece" + piece_index);
+				System.out.println("exiting");
+				return;
 			}else{
 				updatePieces(piece_index);
 			}
@@ -149,9 +127,9 @@ public class DPeer extends Peer{
 	
 	public int get_piece_from_peer(int index)throws Exception{
 		int totalRequested = 0;
-		Message requestMessage;
+		Message requestMessage, haveMsg;
 		int i=0, r=0, dif=0, lastPieceSize=0;
-		byte messageID = 0;
+		int messageID = 0;
 
 		//check what piece were requesting
 		if(index < this.torrentInfo.piece_hashes.length-1){
@@ -165,9 +143,8 @@ public class DPeer extends Peer{
 				dout.flush();
 				socket.setSoTimeout(1300000);
 				
-				//wait for piece message
-				messageID = Message.readMessage(din);
-				if(messageID == 7){ 													
+				messageID = getResponse();
+				if(messageID == (int)RUBTClientConstants.MESSAGE_TYPE_PIECE){
 					//piece message
 					
 					pieceSubset = new byte[16384];
@@ -177,20 +154,18 @@ public class DPeer extends Peer{
 					} // save block
 					
 					this.subPieces.add(pieceSubset);
-				}else{
-					if(messageID == 0){
-						System.out.println("I got choked " + ip + " " + port);
-						Thread.sleep(00020);
-						this.requests[index] = false;
-						return -1;
-					}else if(messageID == -1){
-						//received keep-alive when expecting piece message, go back and wait for piece message
-						System.out.println("I got a keep alive when expecting a piece message, going back and waiting for piece message " + ip + " " + port);
-						totalRequested = totalRequested - 16384;
-					}
-				}																						
+				}else if(messageID == -1){
+					return -1;
+				}
+				//POTENTIAL CUT END*/																						
 			}while(totalRequested != this.torrentInfo.piece_length);							//keep going until we have requesting the total amount of the piece
 			//downloaded the whole piece
+			
+			haveMsg = new Message(5, (byte) RUBTClientConstants.MESSAGE_TYPE_HAVE);
+			haveMsg.setPayload(null,-1,-1,-1,-1,-1,index);
+			dout.write(haveMsg.message);
+			dout.flush();
+			
 		}else if(index == this.torrentInfo.piece_hashes.length-1){
 			
 			//last piece
@@ -207,9 +182,8 @@ public class DPeer extends Peer{
 					dout.flush();
 					socket.setSoTimeout(1300000);
 					
-					//wait for piece message
-					messageID = Message.readMessage(din);
-					if(messageID == 7){												
+					messageID = getResponse();
+					if(messageID == (int)RUBTClientConstants.MESSAGE_TYPE_PIECE){
 						//piece message
 						
 						pieceSubset = new byte[16384];
@@ -219,17 +193,9 @@ public class DPeer extends Peer{
 						} // save block
 						
 						this.subPieces.add(pieceSubset);
-					}else{
-						if(messageID == 0){
-							System.out.println("I got choked " + ip + " " + port);
-							Thread.sleep(00020);
-						}else if(messageID == -1){
-							//keep alive
-						}
-						
-						this.requests[index] = false;
+					}else if(messageID == -1){
 						return -1;
-					}		
+					}
 				}else{
 					//request variable amount of whats left, send request
 					requestMessage = new Message(13,(byte)6);
@@ -240,9 +206,8 @@ public class DPeer extends Peer{
 					dout.flush();
 					socket.setSoTimeout(1300000);
 					
-					//wait for piece message
-					messageID = Message.readMessage(din);
-					if(messageID == 7){												
+					messageID = getResponse();
+					if(messageID == (int)RUBTClientConstants.MESSAGE_TYPE_PIECE){
 						//piece message
 						
 						pieceSubset = new byte[r];
@@ -252,19 +217,18 @@ public class DPeer extends Peer{
 						} // save block
 						
 						this.subPieces.add(pieceSubset);
-					}else{
-						if(messageID == 0){
-							System.out.println("I got choked " + ip + " " + port);
-							Thread.sleep(00020);
-						}else if(messageID == -1){
-							//keep alive
-						}	
-						this.requests[index] = false;
+					}else if(messageID == -1){
 						return -1;
-					}	
+					}
 				}
 			}while(totalRequested != lastPieceSize);					//keep going until the total amount we requested is equal to the size of the piece
 			//done downloading piece
+			
+			haveMsg = new Message(5, (byte) RUBTClientConstants.MESSAGE_TYPE_HAVE);
+			haveMsg.setPayload(null,-1,-1,-1,-1,-1,index);
+			dout.write(haveMsg.message);
+			dout.flush();
+			
 		}
 		return 1;
 	}
@@ -347,10 +311,13 @@ public class DPeer extends Peer{
 		}
 	
 		// wraps full piece and puts into main piece array
+		this.downloaded += fullPiece.length;
+		this.left = this.left - fullPiece.length;
 		ByteBuffer buffer = ByteBuffer.wrap(fullPiece);
 		this.pieces[index] = buffer;
 		this.have[index] = true;
 		this.subPieces = new ArrayList<byte[]>();
+		//System.out.println("downloaded - " + this.downloaded + " left - " + this.left + " Thread " + ip + " " + port);
 	}
 
 	/**
@@ -394,6 +361,67 @@ public class DPeer extends Peer{
 		}
 	}
 	
+	/**
+	 * This function captures the response from a peer after sending messages to it
+	 * It behaves differently according to what it receives, if it recevies a regular message that we
+	 * expect it simply returns the id, but if it receives a choke, keep-alive, or cancel it acts differently
+	 * If its a choke message we set a time out of 2 mins and wait to be unchoked, if were not unchoked by than we sever connection
+	 * If its a keep-alive we simply keep going and read in the next message
+	 * If cancel message, it severs the connection
+	 * 
+	 * @author Kevin Critelli
+	 * @throws Exception An Exception object is thrown if an error occurs
+	 * @return int The int representation of the id
+	 * */
+	
+	public int getResponse()throws Exception{
+		byte messageID = Message.readMessage(din);
+		
+		while(true){
+			switch(messageID){
+				case RUBTClientConstants.MESSAGE_TYPE_KEEP_ALIVE : 
+					//keep alive keep going
+					System.out.println("got a keep-alive " + ip + " " + port);
+					break;
+				case RUBTClientConstants.MESSAGE_TYPE_CHOKE :
+					//choke message
+					System.out.println("I got choked " + ip + " " + port);
+					this.isChoked = true;
+					socket.setSoTimeout(000120);						//wait up to two minutes to get unchoked, if not sever connection
+					
+					try{
+						if(Message.readMessage(din) == 1){
+							//unchoked
+							System.out.println("I got unchoked before the interval ended");
+							this.isChoked = false;
+						}
+					}catch(Exception e){
+						System.out.println("Timed out waiting to be unchoked! Severing Connection");
+						return -1;
+					}
+				case RUBTClientConstants.MESSAGE_TYPE_UNCHOKE :
+					return (int)RUBTClientConstants.MESSAGE_TYPE_UNCHOKE;
+				case RUBTClientConstants.MESSAGE_TYPE_INTERESTED :
+					return (int)RUBTClientConstants.MESSAGE_TYPE_INTERESTED;
+				case RUBTClientConstants.MESSAGE_TYPE_NOT_INTERESTED :
+					return (int)RUBTClientConstants.MESSAGE_TYPE_NOT_INTERESTED;
+				case RUBTClientConstants.MESSAGE_TYPE_HAVE :
+					return (int)RUBTClientConstants.MESSAGE_TYPE_HAVE;
+				case RUBTClientConstants.MESSAGE_TYPE_BITFIELD :
+					return (int)RUBTClientConstants.MESSAGE_TYPE_BITFIELD;
+				case RUBTClientConstants.MESSAGE_TYPE_REQUEST :
+					return (int)RUBTClientConstants.MESSAGE_TYPE_REQUEST;
+				case RUBTClientConstants.MESSAGE_TYPE_PIECE :
+					return (int)RUBTClientConstants.MESSAGE_TYPE_PIECE;
+				case RUBTClientConstants.MESSAGE_TYPE_CANCEL :
+					return (int)RUBTClientConstants.MESSAGE_TYPE_CANCEL;
+				case RUBTClientConstants.MESSAGE_TYPE_HANDSHAKE :
+					return (int)RUBTClientConstants.MESSAGE_TYPE_HANDSHAKE;
+			}
+			messageID = Message.readMessage(din);	
+		}
+	}
+
 	public String toString() {
 		return "" + ip + ":" + port;
 	}

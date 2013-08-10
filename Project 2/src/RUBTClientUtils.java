@@ -34,6 +34,7 @@ public class RUBTClientUtils extends RUBTClient {
 		pieces = new ByteBuffer[torrentInfo.piece_hashes.length];
 		requests = new boolean[torrentInfo.piece_hashes.length];
 		have = new boolean[torrentInfo.piece_hashes.length];
+		left = torrentInfo.file_length;
 
 		for (i = 0; i < have.length; i++) {
 			have[i] = false;
@@ -105,10 +106,10 @@ public class RUBTClientUtils extends RUBTClient {
 
 	public static byte[] intToByteArray(int value) {
 		byte[] retVal = new byte[4];
-		retVal[0] = (byte) (value >> 24);
-		retVal[1] = (byte) (value >> 16);
-		retVal[2] = (byte) (value >> 8);
-		retVal[3] = (byte) (value);
+		retVal[0] = (byte)(value >> 24);
+		retVal[1] = (byte)(value >> 16);
+		retVal[2] = (byte)(value >> 8);
+		retVal[3] = (byte)(value);
 		return retVal;
 	}
 }

@@ -282,7 +282,7 @@ public class TrackerResponse {
 			returnResponse.complete = (Integer) response
 					.get(RUBTClientConstants.TRACKER_RESPONSE_KEY_COMPLETE);
 		else {
-			System.out.println("Warning: no complete, setting to zero");
+			//System.out.println("Warning: no complete, setting to zero");
 			returnResponse.complete = 0;
 		}
 
@@ -291,7 +291,7 @@ public class TrackerResponse {
 			returnResponse.incomplete = (Integer) response
 					.get(RUBTClientConstants.TRACKER_RESPONSE_KEY_INCOMPLETE);
 		else {
-			System.out.println("Warning: no incomplete, setting to zero");
+			//System.out.println("Warning: no incomplete, setting to zero");
 			returnResponse.incomplete = 0;
 		}
 
@@ -300,7 +300,7 @@ public class TrackerResponse {
 			returnResponse.minimumInterval = (Integer) response
 					.get(RUBTClientConstants.TRACKER_RESPONSE_KEY_MIN_INTERVAL);
 		else {
-			System.out.println("Warning: no minimum interval, setting to zero");
+			//System.out.println("Warning: no minimum interval, setting to zero");
 			returnResponse.minimumInterval = 0;
 		}
 
