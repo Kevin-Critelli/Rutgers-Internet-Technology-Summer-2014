@@ -50,9 +50,7 @@ public class DPeer extends Peer{
 		byte[] receivingShake, peerInfoHash;
 		
 		handshake = new Message(info_hash, RUBTClientConstants.peerid);
-		dout.write(handshake.message);
-		dout.flush();
-		socket.setSoTimeout(130000);
+		sendMessage(handshake);
 		receivingShake = new byte[68];
 		din.readFully(receivingShake);
 		peerInfoHash = Arrays.copyOfRange(receivingShake, 28, 48);
@@ -82,9 +80,7 @@ public class DPeer extends Peer{
 		}
 		
 		//send interested message
-		dout.write(interestedMessage.message);
-		dout.flush();
-		socket.setSoTimeout(130000);
+		sendMessage(interestedMessage);
 		
 		messageID = getResponse();
 		if(messageID == 1){
@@ -139,14 +135,11 @@ public class DPeer extends Peer{
 				requestMessage = new Message(13,(byte)6);
 				requestMessage.setPayload(null,-1,-1,16384,totalRequested,index,-1);
 				totalRequested += 16384;
-				dout.write(requestMessage.message);
-				dout.flush();
-				socket.setSoTimeout(1300000);
+				sendMessage(requestMessage);
 				
 				messageID = getResponse();
 				if(messageID == (int)RUBTClientConstants.MESSAGE_TYPE_PIECE){
 					//piece message
-					
 					pieceSubset = new byte[16384];
 
 					for (i = 0; i < 16384; i++) {  			
@@ -156,15 +149,13 @@ public class DPeer extends Peer{
 					this.subPieces.add(pieceSubset);
 				}else if(messageID == -1){
 					return -1;
-				}
-				//POTENTIAL CUT END*/																						
+				}																				
 			}while(totalRequested != this.torrentInfo.piece_length);							//keep going until we have requesting the total amount of the piece
 			//downloaded the whole piece
 			
 			haveMsg = new Message(5, (byte) RUBTClientConstants.MESSAGE_TYPE_HAVE);
 			haveMsg.setPayload(null,-1,-1,-1,-1,-1,index);
-			dout.write(haveMsg.message);
-			dout.flush();
+			sendMessage(haveMsg);
 			
 		}else if(index == this.torrentInfo.piece_hashes.length-1){
 			
@@ -178,9 +169,7 @@ public class DPeer extends Peer{
 					requestMessage = new Message(13,(byte)6);
 					requestMessage.setPayload(null,-1,-1,16384,totalRequested,index,-1);
 					totalRequested += 16384;
-					dout.write(requestMessage.message);
-					dout.flush();
-					socket.setSoTimeout(1300000);
+					sendMessage(requestMessage);
 					
 					messageID = getResponse();
 					if(messageID == (int)RUBTClientConstants.MESSAGE_TYPE_PIECE){
@@ -202,9 +191,7 @@ public class DPeer extends Peer{
 					requestMessage.setPayload(null,-1,-1,lastPieceSize-totalRequested,totalRequested,index,-1);
 					r = lastPieceSize-totalRequested;
 					totalRequested += lastPieceSize-totalRequested;
-					dout.write(requestMessage.message);
-					dout.flush();
-					socket.setSoTimeout(1300000);
+					sendMessage(requestMessage);
 					
 					messageID = getResponse();
 					if(messageID == (int)RUBTClientConstants.MESSAGE_TYPE_PIECE){
@@ -226,8 +213,7 @@ public class DPeer extends Peer{
 			
 			haveMsg = new Message(5, (byte) RUBTClientConstants.MESSAGE_TYPE_HAVE);
 			haveMsg.setPayload(null,-1,-1,-1,-1,-1,index);
-			dout.write(haveMsg.message);
-			dout.flush();
+			sendMessage(haveMsg);
 			
 		}
 		return 1;
@@ -317,7 +303,6 @@ public class DPeer extends Peer{
 		this.pieces[index] = buffer;
 		this.have[index] = true;
 		this.subPieces = new ArrayList<byte[]>();
-		//System.out.println("downloaded - " + this.downloaded + " left - " + this.left + " Thread " + ip + " " + port);
 	}
 
 	/**
@@ -347,16 +332,7 @@ public class DPeer extends Peer{
 			//finished downloading all pieces, close all streams and exit
 			closeConnection();
 			socket.close();
-		}catch(UnknownHostException e){
-			System.out.println("Unknownhost with Thread " + ip + " port " + port);
-		}catch(IOException e){
-			System.out.println("IOException with Thread " + ip + " port " + port);
-		}catch(SecurityException e){
-			System.out.println("SecurityException with Thread " + ip + " port " + port);
-		}catch(IllegalArgumentException e){
-			System.out.println("IllegalArgumentException " + ip + " port " + port);
-		}
-		catch(Exception e){
+		}catch(Exception e){
 			System.out.println("Exception with Thread " + ip + " port " + port);
 		}
 	}
@@ -421,7 +397,13 @@ public class DPeer extends Peer{
 			messageID = Message.readMessage(din);	
 		}
 	}
-
+	
+	public void sendMessage(Message x)throws Exception{
+		dout.write(x.message);
+		dout.flush();
+		socket.setSoTimeout(130000);
+	}
+	
 	public String toString() {
 		return "" + ip + ":" + port;
 	}
