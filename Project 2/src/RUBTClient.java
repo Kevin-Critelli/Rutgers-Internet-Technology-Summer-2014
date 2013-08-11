@@ -49,7 +49,9 @@ public class RUBTClient implements ActionListener {
 		JPanel mainPanel = new JPanel();
 		mainPanel.setLayout(new BorderLayout());
 		TorrentInfoView tiv = new TorrentInfoView(torrentInfo);
+		TrackerResponseView trv = new TrackerResponseView(trackerResponse);
 		mainPanel.add(tiv, BorderLayout.NORTH);
+		mainPanel.add(trv, BorderLayout.SOUTH);
 		
 		JProgressBar pg = new JProgressBar();
 		mainPanel.add(pg, BorderLayout.CENTER);
@@ -73,6 +75,7 @@ public class RUBTClient implements ActionListener {
 		while (true) {
 			int done = (int)(((float)downloaded / (float)torrentInfo.file_length) * 100);
 			pg.setValue(done);
+			trv.update(trackerResponse);
 		}
 
 		// spawn tracker thread to send updates during time interval
