@@ -478,14 +478,13 @@ public class TrackerResponse {
 	}
 
 	public ArrayList<Peer> getAcceptablePeers() {
-		ArrayList<Peer> acceptablePeers = new ArrayList<Peer>(2);
+		ArrayList<Peer> acceptablePeers = new ArrayList<Peer>(RUBTClientConstants.ACCEPTABLE_PEERS.length);
 
 		for (int i = 0; i < peerSize(); i++) {
-			if (getPeerAtIndex(i).ip
-					.contains(RUBTClientConstants.ACCEPTABLE_PEER_1)
-					|| getPeerAtIndex(i).ip
-							.contains(RUBTClientConstants.ACCEPTABLE_PEER_2)) {
-				acceptablePeers.add(getPeerAtIndex(i));
+			for (int j = 0; j < RUBTClientConstants.ACCEPTABLE_PEERS.length; j++) {
+				if (this.peers.get(i).ip.contains(RUBTClientConstants.ACCEPTABLE_PEERS[j])) {
+					acceptablePeers.add(this.peers.get(i));
+				}
 			}
 		}
 

@@ -42,6 +42,15 @@ public class RUBTClientConstants {
 
 	public final static String ACCEPTABLE_PEER_1 = "128:6:171:3";
 	public final static String ACCEPTABLE_PEER_2 = "128:6:171:4";
+	public final static String ACCEPTABLE_PEER_3 = "128.6.171.5";
+	public final static String ACCEPTABLE_PEER_4 = "128.6.171.6";
+	public final static String ACCEPTABLE_PEER_5 = "128.6.171.7";
+	public final static String ACCEPTABLE_PEER_6 = "128.6.171.8";
+
+	public final static String[] ACCEPTABLE_PEERS = { ACCEPTABLE_PEER_1,
+			ACCEPTABLE_PEER_2, ACCEPTABLE_PEER_3, ACCEPTABLE_PEER_4,
+			ACCEPTABLE_PEER_5, ACCEPTABLE_PEER_6 };
+
 	public final static byte[] peerid = { 'p', 'a', 'u', 'l', 'k', 'e', 'v',
 			'i', 'n', 'r', 'i', 't', 'c', 'h', 'i', 'e', 'c', 's', '$', '$' };
 

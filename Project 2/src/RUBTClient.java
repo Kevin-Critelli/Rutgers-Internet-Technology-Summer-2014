@@ -35,20 +35,21 @@ public class RUBTClient {
 	public static String announce_url = "";
 	public static File filePtr = null;
 	public static int numPieces = 0;
+	public static TrackerThread t;
 	public static JButton stopButton;
+	public static ArrayList<Thread> allThreads;
+	public static JFrame frame;
 
 	/**
 	 * @param args
 	 * @throws InterruptedException
 	 */
-
 	public static void main(String[] args) throws InterruptedException {
-		TrackerThread t;
 		FrontDoor f;
 		Scanner sc;
 		int i = 0, choice = 0;
 
-		JFrame frame = new JFrame("RUBT Client");
+		frame = new JFrame("RUBT Client");
 		String torrentFile = JOptionPane.showInputDialog(frame,
 				"Where's your torrent file?", "project2.torrent");
 
@@ -68,16 +69,20 @@ public class RUBTClient {
 		mainPanel.add(headerPanel, BorderLayout.NORTH);
 
 		JPanel progressPanel = new JPanel(new BorderLayout());
-		stopButton = new JButton("Stop");
+		stopButton = new JButton("Finish and save");
 		stopButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				stopButtonPressed();
 			}
 		});
+		
+		stopButton.setEnabled(false);
 		JProgressBar pg = new JProgressBar();
 		progressPanel.add(stopButton, BorderLayout.EAST);
 		progressPanel.add(pg, BorderLayout.CENTER);
 		mainPanel.add(progressPanel, BorderLayout.SOUTH);
+		
+		allThreads = new ArrayList<Thread>();
 		
 		frame.add(mainPanel);
 
@@ -92,25 +97,35 @@ public class RUBTClient {
 		for (i = 0; i < trackerResponse.peers.size(); i++) {
 			trackerResponse.peers.get(i).ip = trackerResponse.peers.get(i).ip
 					.replaceAll(":", ".");
-			new Thread(trackerResponse.peers.get(i)).start();
+			Thread thread =new Thread(trackerResponse.peers.get(i));
+			allThreads.add(thread);
+			thread.start();
 		}
 
 		t = new TrackerThread();
-		new Thread(t).start();
-
+		Thread thread = new Thread(t);
+		thread.start();
+		
 		sc = new Scanner(System.in);
 		while (true) {
-			pg.setValue((int) (((float) downloaded / (float) torrentInfo.file_length) * 100));
+			int done = (int) (((float) downloaded / (float) torrentInfo.file_length) * 100);
+			pg.setValue(done);
 			trv.update(trackerResponse);
+			if (done == 100) {
+				stopButton.setEnabled(true);
+			}
 		}
 	}
 
 	public static void stopButtonPressed() {
 		// stop threads from running, if any
 		for (int i = 0; i < trackerResponse.peers.size(); i++) {
-			trackerResponse.peers.get(i).isRunning = false;
+			trackerResponse.peers.get(i).isRunning = false; // this doesn't seem to stop them!
 		}
-
+		
+		for (int i = 0; i < allThreads.size(); i++)
+			allThreads.get(i).interrupt();
+		
 		if (RUBTClientUtils.check()) {
 			RUBTClientUtils.SaveFile();
 		} else {
@@ -122,5 +137,9 @@ public class RUBTClient {
 				e.printStackTrace();
 			}
 		}
+		
+		t.stopExecution();
+		frame.setVisible(false);
+		System.exit(0);
 	}
 }
