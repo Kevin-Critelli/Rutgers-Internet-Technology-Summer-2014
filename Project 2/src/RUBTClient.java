@@ -1,6 +1,4 @@
 import java.net.MalformedURLException;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -8,26 +6,31 @@ import java.nio.ByteBuffer;
 import java.util.Scanner;
 import java.io.File;
 
-import java.awt.*;
-import javax.swing.*;
-import javax.swing.event.*;
+/**
+ * Main class in the torrent client
+ * Calls all other necessary classes to begin the process, maintains a small
+ * interface for the user, and closes client when necessary.
+ * 
+ * */
 
-public class RUBTClient implements ActionListener {
-
+public class RUBTClient {
+	
+	//static members belong to class, not specific instances
+	
 	public static ByteBuffer[] pieces = null;
 	public static boolean[] requests = null;
 	public static boolean[] have = null;
 	public static int downloaded = 0;
 	public static int uploaded = 0;
 	public static int left = 0;
-	public static boolean isStarted = false; // first request must contain
-												// started event
-	public static boolean isStopped = false; // used when client is shut down
-												// gracefully
-	public static boolean isCompleted = false;
+	public static boolean isStarted = false;							
+	public static boolean isStopped = false;							
+	public static boolean isCompleted = false;				
 	public static TorrentInfo torrentInfo = null;
 	public static TrackerResponse trackerResponse = null;
 	public static String announce_url = "";
+	public static File filePtr = null;
+	public static int numPieces = 0;
 
 	/**
 	 * @param args
@@ -36,74 +39,64 @@ public class RUBTClient implements ActionListener {
 
 	public static void main(String[] args) throws InterruptedException {
 		TrackerThread t;
-		int i = 0;
-
-		JFrame frame = new JFrame("RUBT Client");
-		String torrentFile = JOptionPane.showInputDialog(frame,
-				"Where's your torrent file?", "project2.torrent");
-
-		torrentInfo = TorrentInfo.getTorrentInfoFrom(torrentFile);
-		trackerResponse = new TrackerResponse(torrentInfo);
-		announce_url = trackerResponse.announceURL;
+		FrontDoor f;
+		Scanner sc;
+		int i=0, choice=0;
 		
-		JPanel mainPanel = new JPanel();
-		mainPanel.setLayout(new BorderLayout());
-		TorrentInfoView tiv = new TorrentInfoView(torrentInfo);
-		TrackerResponseView trv = new TrackerResponseView(trackerResponse);
-		mainPanel.add(tiv, BorderLayout.NORTH);
-		mainPanel.add(trv, BorderLayout.SOUTH);
+		RUBTClientUtils.Parse_Torrent_Contact_Tracker(args[0]);
+	
+		RUBTClientUtils.initializeFields();		
 		
-		JProgressBar pg = new JProgressBar();
-		mainPanel.add(pg, BorderLayout.CENTER);
+		RUBTClientUtils.checkState(filePtr);
 		
-		frame.add(mainPanel);
-		
-		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setSize(720, 320);
-        frame.setVisible(true);
-		
-		RUBTClientUtils.initializeFields();
-
+		//spawn download threads
 		for (i = 0; i < trackerResponse.peers.size(); i++) {
 			trackerResponse.peers.get(i).ip = trackerResponse.peers.get(i).ip.replaceAll(":",".");
 			new Thread(trackerResponse.peers.get(i)).start();
 		}
 		
+		//sets up front door object to listen for peers and spawn upload threads
+		/*System.out.println("Spawning Front Door");
+		f = new FrontDoor();
+		new Thread(f).start();*/
+
+		/*
+		//spawn tracker thread to send updates during time interval
 		t = new TrackerThread();
-		new Thread(t).start();
+		new Thread(t).start();*/
 		
+		//Small Interface for user
+		sc = new Scanner(System.in);
 		while (true) {
-			int done = (int)(((float)downloaded / (float)torrentInfo.file_length) * 100);
-			pg.setValue(done);
-			trv.update(trackerResponse);
-		}
+			System.out.println("1) Exit");	
+			System.out.println();
+			choice = sc.nextInt();
 
-		// spawn tracker thread to send updates during time interval
-	}
-
-	@Override
-	public void actionPerformed(ActionEvent arg0) {
-		FileOutputStream fileoutput;
-		
-		try {
-			// save file
-			fileoutput = new FileOutputStream(new File(torrentInfo.file_name));
-
-			for (int i = 0; i < pieces.length; i++) {
-				fileoutput.write(pieces[i].array());
+			if (choice == 1) {
+				System.out.println("Exiting Program and Current State...");
+				
+				//stop threads from running, if any
+				for (i = 0; i < trackerResponse.peers.size(); i++) {
+					trackerResponse.peers.get(i).isRunning = false;
+				}
+				
+				if(RUBTClientUtils.check()) {
+					System.out.println();
+					System.out.println("File Finished Downloading...Saving File Now...");
+					RUBTClientUtils.SaveFile();
+					break;
+				}else{
+					System.out.println();
+					System.out.println("File Download Still In Progress ");
+					System.out.println("Total Bytes Downloaded: " + downloaded);
+					System.out.println("Total Bytes Left To Download: " + left);
+					//**ADD**SEND EVENT STOPPED TO TRACKER
+					break;
+				}
+			}else {
+				System.out.println("Invalid option, please enter 1 to quit");
 			}
-
-			fileoutput.close();
-
-			System.out.println("End Download " + downloaded);
-			System.out.println("End Left " + left);
-
-			// send stopped event to tracker
-			trackerResponse.sendTrackerFinishedStopped(announce_url,
-					torrentInfo.info_hash.array(), downloaded, uploaded, 0);
-			//t.stopExecution();
-		} catch (Exception e) {
-			e.printStackTrace();
 		}
+		System.exit(0);
 	}
 }

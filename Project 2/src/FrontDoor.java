@@ -8,7 +8,7 @@ import java.net.*;
  * */
 
 public class FrontDoor implements Runnable {
-        int port = 5110;
+        int port = 5300;
         ServerSocket frontDoor;
         
         /**
@@ -33,9 +33,11 @@ public class FrontDoor implements Runnable {
          * */
         
         public void ListenForHandshakes() throws Exception {
+			System.out.println("listening on port " + port);
             while(true){
                 Socket connectionSocket = frontDoor.accept();
                 UPeer Leech = new UPeer(connectionSocket);
+                System.out.println("Spawning new leech");
                 new Thread(Leech).start();
             }
         }

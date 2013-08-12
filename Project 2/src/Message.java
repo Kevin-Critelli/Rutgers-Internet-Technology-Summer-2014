@@ -320,6 +320,7 @@ public class Message {
 					return id;
 			case 5: //bitfield message 
 					//System.out.println("bit field");
+					//System.out.println("length of bitfield " + length);
 					for(int i =0;i<length-1;i++){
 						din.readByte();
 					}
@@ -333,7 +334,6 @@ public class Message {
 					return id;
 			default: break;
 		}
-		System.out.println("waht");
 		return 0;
 	}
 }

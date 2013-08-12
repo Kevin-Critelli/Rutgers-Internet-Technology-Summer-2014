@@ -13,14 +13,13 @@ import java.util.ArrayList;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.net.Socket;
-import java.io.*;
-import java.net.*;
  
 public class DPeer extends Peer{
 
+	public boolean isRunning = true;
 	public Socket socket = null;
-	ArrayList<byte[]> subPieces = new ArrayList<byte[]>(); 							// arraylist holding the sub pieces within the piece requested
-	byte[] pieceSubset = null; 														// byte array representing a sub piece from within the piece requested
+	public ArrayList<byte[]> subPieces = new ArrayList<byte[]>(); 							// arraylist holding the sub pieces within the piece requested
+	byte[] pieceSubset = null; 																// byte array representing a sub piece from within the piece requested
 
 	/**
 	 * Constructor for a DPeer object
@@ -76,7 +75,7 @@ public class DPeer extends Peer{
 		interestedMessage = new Message(1, (byte) RUBTClientConstants.MESSAGE_TYPE_INTERESTED);
 		
 		if(getResponse() == (int)RUBTClientConstants.MESSAGE_TYPE_BITFIELD){				//Add timing out for no bit fields
-			System.out.println("hey we got a bit field!");
+			//System.out.println("hey we got a bit field!");
 		}
 		
 		//send interested message
@@ -84,14 +83,16 @@ public class DPeer extends Peer{
 		
 		messageID = getResponse();
 		if(messageID == 1){
-			System.out.println("were unchoked!");
+			//System.out.println("were unchoked!");
 		}else if(messageID == -1){
 			return;
 		}																						
-						
+		
+		
+		//keep doing this until we stop the thread				
 		while(true){
 			//call synchronized function to check what piece we need
-			int piece_index = get_piece_to_request();
+			int piece_index = RUBTClientUtils.get_piece_to_request();
 			
 			//we have all pieces, so just return and exit thread
 			if(piece_index == -1){ 
@@ -101,10 +102,12 @@ public class DPeer extends Peer{
 			int retVal = get_piece_from_peer(piece_index);
 			
 			if(retVal == -1){
-				System.out.println("exiting");
 				return;
 			}else{
 				updatePieces(piece_index);
+			}
+			if(isRunning != true){
+				return;
 			}
 		}
 	}
@@ -220,26 +223,6 @@ public class DPeer extends Peer{
 	}
 	
 	/**
-	 * This function determines what piece we need to request from the peer
-	 * It is synchronized so that no threads access the 'Requested' array at the same time,
-	 * therefore avoiding two threads requesting the same piece
-	 * 
-	 * @author Kevin Critelli
-	 * @return int Returns an int value representing the index of the piece that this thread should request from peer
-	 * 
-	 * */
-	
-	public synchronized int get_piece_to_request(){
-		for(int i=0;i<this.requests.length;i++){
-			if(this.requests[i] == false){
-				this.requests[i] = true;
-				return i;
-			}
-		}
-		return -1;
-	}
-	
-	/**
 	 * This function verifies the hash of the piece against the hash from the torrent file
 	 * 
 	 * @author Kevin Critelli
@@ -259,10 +242,10 @@ public class DPeer extends Peer{
 	}
 	
 	/**
-	 * Synchronized function that updates our main array of pieces, and sets a flag in the have array
-	 * notifying other threads that we now have this piece. This function is synchronized
-	 * to make sure no two threads write into our main array of pieces at the same time, and no two threads
-	 * are updating the 'Have' array at the same time
+	 * This function takes all the sub-pieces and combines them into the full
+	 * piece. It than verifies the info hash to make sure its what were expecting.
+	 * It will than wait for a turn to call update which is a synchronized method that
+	 * writes blocks into our main pieces array in RUBT.
 	 * 
 	 * @author Kevin Critelli
 	 * @param index int representing the index of the piece we just downloaded and
@@ -270,39 +253,34 @@ public class DPeer extends Peer{
 	 * @throws Exception Throws an exception if an error occurs
 	 * */
 
-	public synchronized void updatePieces(int index) throws Exception{
-		byte[] fullPiece;
-		int size=0, count=0, i=0; 
-		
-		//Get the size of the full piece
-		for (i = 0; i < this.subPieces.size(); i++) {
-			size += this.subPieces.get(i).length;
-		}
-		
-		fullPiece = new byte[size];
-		
-		//copy the pieces into fullPiece array
-		for (i = 0; i < this.subPieces.size(); i++) {
-			System.arraycopy(this.subPieces.get(i),0,fullPiece,count,this.subPieces.get(i).length);
-			count += this.subPieces.get(i).length;
-		}
-		
-		//verify hash
-		if(verifyHash(fullPiece, this.torrentInfo.piece_hashes[index].array())){
-			//hashes match
-			//System.out.println("HASH MATCH");
-		}else{
-			//hashes do not much, do something close streams?
-			//System.out.println("HASH DO NOT MATCH");
-		}
-	
-		// wraps full piece and puts into main piece array
-		this.downloaded += fullPiece.length;
-		this.left = this.left - fullPiece.length;
-		ByteBuffer buffer = ByteBuffer.wrap(fullPiece);
-		this.pieces[index] = buffer;
-		this.have[index] = true;
-		this.subPieces = new ArrayList<byte[]>();
+	public void updatePieces(int index) throws Exception{
+			byte[] fullPiece;
+			int size=0, count=0, i=0; 
+			
+			//Get the size of the full piece
+			for (i = 0; i < this.subPieces.size(); i++) {
+				size += this.subPieces.get(i).length;
+			}
+			
+			fullPiece = new byte[size];
+			
+			//copy the pieces into fullPiece array
+			for (i = 0; i < this.subPieces.size(); i++) {
+				System.arraycopy(this.subPieces.get(i),0,fullPiece,count,this.subPieces.get(i).length);
+				count += this.subPieces.get(i).length;
+			}
+			
+			//verify hash
+			if(verifyHash(fullPiece, this.torrentInfo.piece_hashes[index].array())){
+				//hashes match
+				//System.out.println("HASH MATCH");
+			}else{
+				//hashes do not much, do something close streams?
+				//System.out.println("HASH DO NOT MATCH");
+			}
+			
+			RUBTClientUtils.update(index,fullPiece);
+			this.subPieces = new ArrayList<byte[]>();
 	}
 
 	/**
@@ -313,28 +291,26 @@ public class DPeer extends Peer{
 	 * */
 
 	public void run() {
-		try{
-			//open socket and streams to peer
-			socket = new Socket(ip, port);
-			initConnection(socket);
-			
-			System.out.println("successfull connection to ip " + ip + " port " + port);
-			
-			//send the handshake to the peer
-			if (!(sendHandshake(this.torrentInfo.info_hash.array()))) {
-				System.out.println("Handshake failed");
-				return;
+			try{
+				//open socket and streams to peer
+				socket = new Socket(ip, port);
+				initConnection(socket);
+				
+				//send the handshake to the peer
+				if (!(sendHandshake(this.torrentInfo.info_hash.array()))) {
+					System.out.println("Handshake failed");
+					return;
+				}
+				
+				//handshake accepted, start requesting pieces from peer
+				downloadPiece();
+				
+				//finished downloading all pieces, close all streams and exit
+				closeConnection();
+				socket.close();
+			}catch(Exception e){
+				//System.out.println("Exception with Thread " + ip + " port " + port);
 			}
-			
-			//handshake accepted, start requesting pieces from peer
-			downloadPiece();
-	
-			//finished downloading all pieces, close all streams and exit
-			closeConnection();
-			socket.close();
-		}catch(Exception e){
-			System.out.println("Exception with Thread " + ip + " port " + port);
-		}
 	}
 	
 	/**

@@ -47,16 +47,19 @@ public class UPeer extends Peer{
 		} else {
 			//place info_hash in correct spot
 			//send back handshake
+			System.out.println("sending back shake");
 			dout.write(returnhandshake.message);
 			dout.flush();
 		
 			//read message see if interested
 			if(Message.readMessage(din) == 2){
 				//Interested
+				System.out.println("there interested");
 			}else{
 				//Not Interested
 			}
 			
+			System.out.println("sending an unchoke");
 			//if interested send unchoke message
 			Message unchoke = new Message(1,(byte)1);
 			dout.write(unchoke.message);
@@ -104,9 +107,11 @@ public class UPeer extends Peer{
 	 * */
 	
 	public void run() {
+		System.out.println("upeer running ");
 		try{
 			if(ReceiveHandshake(this.torrentInfo.info_hash.array())){
 				//call upload function
+				System.out.println("calling upload");
 				upload();
 			}
 			//at this point, upload is complete, close all streams, exit thread
