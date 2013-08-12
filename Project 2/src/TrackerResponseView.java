@@ -25,13 +25,14 @@ public class TrackerResponseView extends JPanel {
 		this.add(trackerIntervalLabel);
 		
 		numberOfPeersLabel = new JLabel();
-		numberOfPeersLabel.setText("Number of peers: " + tr.peerSize());
+		numberOfPeersLabel.setText("Number of peers: " + tr.peerSize() + " (" + tr.complete + " seeders/" + tr.incomplete + " leechers)");
 		numberOfPeersLabel.setHorizontalAlignment( SwingConstants.CENTER );
 		this.add(numberOfPeersLabel);
+
 	}
 	
 	public void update(TrackerResponse tr) {
 		trackerIntervalLabel.setText("Tracker update interval: " + tr.interval);
-		numberOfPeersLabel.setText("Number of peers: " + tr.peerSize());
+		numberOfPeersLabel.setText("Number of peers: " + tr.peerSize() + " (" + tr.complete + " seeders/" + tr.incomplete + " leechers)");
 	}
 }

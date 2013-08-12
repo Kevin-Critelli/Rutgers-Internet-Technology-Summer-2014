@@ -1,8 +1,6 @@
-import java.net.MalformedURLException;
 import java.net.UnknownHostException;
 import java.awt.*;
 import java.awt.event.*;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.nio.ByteBuffer;
@@ -47,10 +45,6 @@ public class RUBTClient {
 	 * @throws InterruptedException
 	 */
 	public static void main(String[] args) throws InterruptedException {
-		FrontDoor f;
-		Scanner sc;
-		int i = 0, choice = 0;
-
 		frame = new JFrame("RUBT Client");
 		String torrentFile = JOptionPane.showInputDialog(frame,
 				"Where's your torrent file?", "project2.torrent");
@@ -83,20 +77,22 @@ public class RUBTClient {
 		progressPanel.add(stopButton, BorderLayout.EAST);
 		progressPanel.add(pg, BorderLayout.CENTER);
 		mainPanel.add(progressPanel, BorderLayout.SOUTH);
-		
+
 		allThreads = new ArrayList<Thread>();
-		
+
 		frame.add(mainPanel);
 
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		frame.setSize(720, 320);
+		frame.setMinimumSize(new Dimension(480, 240));
+		frame.setMaximumSize(new Dimension(900, 280));
 		frame.setVisible(true);
 
 		RUBTClientUtils.initializeFields();
 		RUBTClientUtils.checkState(filePtr);
 
 		// spawn download threads
-		for (i = 0; i < trackerResponse.peers.size(); i++) {
+		for (int i = 0; i < trackerResponse.peers.size(); i++) {
 			trackerResponse.peers.get(i).ip = trackerResponse.peers.get(i).ip
 					.replaceAll(":", ".");
 			Thread thread = new Thread(trackerResponse.peers.get(i));
@@ -104,22 +100,23 @@ public class RUBTClient {
 			thread.start();
 		}
 
-		peerTable = new JTable(new PeerTableModel(trackerResponse, trackerResponse.peerSize()));
+		peerTable = new JTable(new PeerTableModel(trackerResponse,
+				trackerResponse.peerSize()));
 		mainPanel.add(peerTable, BorderLayout.CENTER);
-		
+
 		t = new TrackerThread();
 		Thread thread = new Thread(t);
 		thread.start();
 
-		sc = new Scanner(System.in);
 		while (true) {
 			int done = (int) (((float) downloaded / (float) torrentInfo.file_length) * 100);
 			pg.setValue(done);
 			trv.update(trackerResponse);
+
 			if (done == 100) {
 				stopButton.setEnabled(true);
 			}
-			
+
 			PeerTableModel tableModel = (PeerTableModel) peerTable.getModel();
 			tableModel.setPeerList(trackerResponse, trackerResponse.peerSize());
 			peerTable.setModel(tableModel);
@@ -155,11 +152,11 @@ public class RUBTClient {
 }
 
 /**
- * This is how the table in the RUBTClient frame gets updated from
- * the tracker response and peers.
+ * This is how the table in the RUBTClient frame gets updated from the tracker
+ * response and peers.
  * 
  * @author pauljones
- *
+ * 
  */
 class PeerTableModel extends DefaultTableModel {
 	private static final long serialVersionUID = 6201801201614880087L;
