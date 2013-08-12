@@ -1,6 +1,14 @@
 import java.awt.*;
 import javax.swing.*;
 
+/**
+ * This class contains three labels and displays information
+ * from a torrentinfo object, which is generatad from a torrent
+ * info file.
+ * 
+ * @author pauljones
+ *
+ */
 public class TorrentInfoView extends JPanel {
 	private static final long serialVersionUID = -693263233518741146L;
 	

@@ -1,6 +1,15 @@
 import java.io.IOException;
 import java.net.MalformedURLException;
 
+/**
+ * This class is responsible for updating TrackerReponse in RUBTClient.
+ * It sleeps on the interval returned from the tracker.
+ * 
+ * It does not send any events to the tracker.
+ * 
+ * @author pauljones
+ *
+ */
 public class TrackerThread extends RUBTClient implements Runnable {
 	
 	public static boolean running = true;

@@ -85,7 +85,7 @@ public class RUBTClient {
 		mainPanel.add(progressPanel, BorderLayout.SOUTH);
 		
 		allThreads = new ArrayList<Thread>();
-
+		
 		frame.add(mainPanel);
 
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -154,6 +154,13 @@ public class RUBTClient {
 	}
 }
 
+/**
+ * This is how the table in the RUBTClient frame gets updated from
+ * the tracker response and peers.
+ * 
+ * @author pauljones
+ *
+ */
 class PeerTableModel extends DefaultTableModel {
 	private static final long serialVersionUID = 6201801201614880087L;
 	private TrackerResponse ti;

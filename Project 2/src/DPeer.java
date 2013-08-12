@@ -38,7 +38,6 @@ public class DPeer extends Peer {
 	 *            int value of the port to connect to for this peer
 	 * 
 	 * */
-
 	public DPeer(int port, String ip) {
 		super(port, ip);
 	}
@@ -54,7 +53,6 @@ public class DPeer extends Peer {
 	 *             An Exception object is thrown if an error occurs
 	 * @return true if handshake accepted, false otherwise
 	 * */
-
 	public boolean sendHandshake(byte[] info_hash) throws Exception {
 		Message handshake;
 		byte[] receivingShake, peerInfoHash;
@@ -366,8 +364,7 @@ public class DPeer extends Peer {
 				closeConnection();
 				socket.close();
 			} catch (Exception e) {
-				// System.out.println("Exception with Thread " + ip + " port " +
-				// port);
+				
 			}
 		}
 	}
@@ -387,57 +384,29 @@ public class DPeer extends Peer {
 	 *             An Exception object is thrown if an error occurs
 	 * @return int The int representation of the id
 	 * */
-
 	public int getResponse() throws Exception {
 		byte messageID = Message.readMessage(din);
 
 		while (true) {
-			switch (messageID) {
-			case RUBTClientConstants.MESSAGE_TYPE_KEEP_ALIVE:
-				// keep alive keep going
-				System.out.println("got a keep-alive " + ip + " " + port);
+			if (messageID == RUBTClientConstants.MESSAGE_TYPE_KEEP_ALIVE) {
 				break;
-			case RUBTClientConstants.MESSAGE_TYPE_CHOKE:
-				// choke message
-				System.out.println("I got choked " + ip + " " + port);
+			} else if (messageID == RUBTClientConstants.MESSAGE_TYPE_CHOKE) {
 				this.isChoked = true;
-				socket.setSoTimeout(000120); // wait up to two minutes to get
-												// unchoked, if not sever
-												// connection
-
+				socket.setSoTimeout(000120);
 				try {
 					if (Message.readMessage(din) == 1) {
-						// unchoked
-						System.out
-								.println("I got unchoked before the interval ended");
 						this.isChoked = false;
 					}
 				} catch (Exception e) {
-					System.out
-							.println("Timed out waiting to be unchoked! Severing Connection");
 					return -1;
 				}
-			case RUBTClientConstants.MESSAGE_TYPE_UNCHOKE:
-				return (int) RUBTClientConstants.MESSAGE_TYPE_UNCHOKE;
-			case RUBTClientConstants.MESSAGE_TYPE_INTERESTED:
-				return (int) RUBTClientConstants.MESSAGE_TYPE_INTERESTED;
-			case RUBTClientConstants.MESSAGE_TYPE_NOT_INTERESTED:
-				return (int) RUBTClientConstants.MESSAGE_TYPE_NOT_INTERESTED;
-			case RUBTClientConstants.MESSAGE_TYPE_HAVE:
-				return (int) RUBTClientConstants.MESSAGE_TYPE_HAVE;
-			case RUBTClientConstants.MESSAGE_TYPE_BITFIELD:
-				return (int) RUBTClientConstants.MESSAGE_TYPE_BITFIELD;
-			case RUBTClientConstants.MESSAGE_TYPE_REQUEST:
-				return (int) RUBTClientConstants.MESSAGE_TYPE_REQUEST;
-			case RUBTClientConstants.MESSAGE_TYPE_PIECE:
-				return (int) RUBTClientConstants.MESSAGE_TYPE_PIECE;
-			case RUBTClientConstants.MESSAGE_TYPE_CANCEL:
-				return (int) RUBTClientConstants.MESSAGE_TYPE_CANCEL;
-			case RUBTClientConstants.MESSAGE_TYPE_HANDSHAKE:
-				return (int) RUBTClientConstants.MESSAGE_TYPE_HANDSHAKE;
+			} else {
+				return (int) messageID;
 			}
 			messageID = Message.readMessage(din);
 		}
+
+		return (int) messageID;
 	}
 
 	public void sendMessage(Message x) throws Exception {

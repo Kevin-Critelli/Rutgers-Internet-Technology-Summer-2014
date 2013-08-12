@@ -2,6 +2,14 @@ import java.awt.*;
 
 import javax.swing.*;
 
+/**
+ * This class has to labels and gets the infromation
+ * from a tracker response object. Will be updated
+ * along with the tracker response.
+ * 
+ * @author pauljones
+ *
+ */
 public class TrackerResponseView extends JPanel {
 	private static final long serialVersionUID = 821753837489416698L;
 	

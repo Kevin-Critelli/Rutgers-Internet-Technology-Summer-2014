@@ -102,6 +102,12 @@ public class TorrentInfo {
 	 */
 	public final ByteBuffer[] piece_hashes;
 
+	/**
+	 * This is a convienient way of visualizing the information
+	 * in a Torrent file.
+	 * 
+	 * @author pauljones
+	 */
 	public String toString() {
 		String ret = "TorrentInfo:\n";
 
@@ -151,6 +157,8 @@ public class TorrentInfo {
 	 * Convinience method for getting byte array adapted from
 	 * 
 	 * @see http://stackoverflow.com/a/7591216/1489522
+	 * 
+	 * @author pauljones
 	 * 
 	 * @param file
 	 *            is a filename
