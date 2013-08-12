@@ -6,10 +6,11 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.nio.ByteBuffer;
-import java.util.Scanner;
+import java.util.*;
 import java.io.File;
 
 import javax.swing.*;
+import javax.swing.table.*;
 
 /**
  * Main class in the torrent client Calls all other necessary classes to begin
@@ -39,6 +40,7 @@ public class RUBTClient {
 	public static JButton stopButton;
 	public static ArrayList<Thread> allThreads;
 	public static JFrame frame;
+	public static JTable peerTable;
 
 	/**
 	 * @param args
@@ -72,10 +74,10 @@ public class RUBTClient {
 		stopButton = new JButton("Finish and save");
 		stopButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				stopButtonPressed();
+				finishAndSaveButtonClicked();
 			}
 		});
-		
+
 		stopButton.setEnabled(false);
 		JProgressBar pg = new JProgressBar();
 		progressPanel.add(stopButton, BorderLayout.EAST);
@@ -83,7 +85,7 @@ public class RUBTClient {
 		mainPanel.add(progressPanel, BorderLayout.SOUTH);
 		
 		allThreads = new ArrayList<Thread>();
-		
+
 		frame.add(mainPanel);
 
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -97,15 +99,18 @@ public class RUBTClient {
 		for (i = 0; i < trackerResponse.peers.size(); i++) {
 			trackerResponse.peers.get(i).ip = trackerResponse.peers.get(i).ip
 					.replaceAll(":", ".");
-			Thread thread =new Thread(trackerResponse.peers.get(i));
+			Thread thread = new Thread(trackerResponse.peers.get(i));
 			allThreads.add(thread);
 			thread.start();
 		}
 
+		peerTable = new JTable(new PeerTableModel(trackerResponse, trackerResponse.peerSize()));
+		mainPanel.add(peerTable, BorderLayout.CENTER);
+		
 		t = new TrackerThread();
 		Thread thread = new Thread(t);
 		thread.start();
-		
+
 		sc = new Scanner(System.in);
 		while (true) {
 			int done = (int) (((float) downloaded / (float) torrentInfo.file_length) * 100);
@@ -114,18 +119,23 @@ public class RUBTClient {
 			if (done == 100) {
 				stopButton.setEnabled(true);
 			}
+			
+			PeerTableModel tableModel = (PeerTableModel) peerTable.getModel();
+			tableModel.setPeerList(trackerResponse, trackerResponse.peerSize());
+			peerTable.setModel(tableModel);
 		}
 	}
 
-	public static void stopButtonPressed() {
+	public static void finishAndSaveButtonClicked() {
 		// stop threads from running, if any
 		for (int i = 0; i < trackerResponse.peers.size(); i++) {
-			trackerResponse.peers.get(i).isRunning = false; // this doesn't seem to stop them!
+			trackerResponse.peers.get(i).isRunning = false; // this doesn't seem
+															// to stop them!
 		}
-		
+
 		for (int i = 0; i < allThreads.size(); i++)
 			allThreads.get(i).interrupt();
-		
+
 		if (RUBTClientUtils.check()) {
 			RUBTClientUtils.SaveFile();
 		} else {
@@ -137,9 +147,41 @@ public class RUBTClient {
 				e.printStackTrace();
 			}
 		}
-		
+
 		t.stopExecution();
 		frame.setVisible(false);
 		System.exit(0);
+	}
+}
+
+class PeerTableModel extends DefaultTableModel {
+	private static final long serialVersionUID = 6201801201614880087L;
+	private TrackerResponse ti;
+	private int numberOfPeers = 0;
+
+	public PeerTableModel(TrackerResponse ti, int numberOfPeers) {
+		this.ti = ti;
+		this.numberOfPeers = numberOfPeers;
+	}
+
+	public void setPeerList(TrackerResponse ti, int numberOfPeers) {
+		this.ti = ti;
+		this.numberOfPeers = numberOfPeers;
+	}
+
+	public int getColumnCount() {
+		return 3;
+	}
+
+	public int getRowCount() {
+		return numberOfPeers;
+	}
+
+	public Object getValueAt(int row, int column) {
+		if (row >= ti.peers.size()) {
+			return null;
+		}
+
+		return ti.peers.get(row).getTableInfo()[column];
 	}
 }
