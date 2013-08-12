@@ -1,4 +1,5 @@
 import java.net.MalformedURLException;
+import java.net.UnknownHostException;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.FileOutputStream;
@@ -113,7 +114,13 @@ public class RUBTClient {
 		if (RUBTClientUtils.check()) {
 			RUBTClientUtils.SaveFile();
 		} else {
-			// **ADD**SEND EVENT STOPPED TO TRACKER
+			try {
+				trackerResponse.sendEventStopped(torrentInfo);
+			} catch (UnknownHostException e) {
+				e.printStackTrace();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
 		}
 	}
 }

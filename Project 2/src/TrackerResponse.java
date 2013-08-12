@@ -163,7 +163,61 @@ public class TrackerResponse {
 			}
 		}
 	}
+	
+	/**
+	 * Send an HTTP GET request to the tracker at the IP address and port
+	 * specified by the TorrentFile object. The java.net.URL class is very
+	 * useful for this. Sends the stopped event.
+	 * 
+	 * @author Paul Jones
+	 * 
+	 * @param ti
+	 *            any torrent info object
+	 * @throws UnknownHostException
+	 * @throws IOException
+	 */
+	public byte[] sendEventStopped(TorrentInfo ti)
+			throws UnknownHostException, IOException {
 
+		String info_hash = RUBTClientUtils.toHexString(ti.info_hash.array()); // info_hash
+		String peer_id = RUBTClientUtils
+				.toHexString(RUBTClientConstants.peerid); // peer_id
+
+		String port = "" + 6883; // port
+		String downloaded = "" + 0;
+		String uploaded = "" + 0;
+		String left = "" + ti.file_length;
+		String announceURL = ti.announce_url.toString();
+
+		String newURL = announceURL.toString();
+		this.announceURL = newURL;
+
+		newURL += "?" + RUBTClientConstants.TRACKER_RESPONSE_KEY_INFO_HASH
+				+ "=" + info_hash + "&"
+				+ RUBTClientConstants.TRACKER_RESPONSE_KEY_PEER_ID + "="
+				+ peer_id + "&" + RUBTClientConstants.TRACKER_RESPONSE_KEY_PORT
+				+ "=" + port + "&"
+				+ RUBTClientConstants.TRACKER_RESPONSE_KEY_UPLOADED + "="
+				+ uploaded + "&"
+				+ RUBTClientConstants.TRACKER_RESPONSE_KEY_DOWNLOADED + "="
+				+ downloaded + "&"
+				+ RUBTClientConstants.TRACKER_RESPONSE_KEY_LEFT + "=" + left
+				+ "&" + RUBTClientConstants.TRACKER_RESPONSE_KEY_EVENT + "="
+				+ RUBTClientConstants.TRACKER_RESPONSE_KEY_STOPPED;
+
+		HttpURLConnection huc = (HttpURLConnection) new URL(newURL)
+				.openConnection();
+		DataInputStream dis = new DataInputStream(huc.getInputStream());
+
+		int dataSize = huc.getContentLength();
+		byte[] retArray = new byte[dataSize];
+
+		dis.readFully(retArray);
+		dis.close();
+
+		return retArray;
+	}
+	
 	/**
 	 * Send an HTTP GET request to the tracker at the IP address and port
 	 * specified by the TorrentFile object. The java.net.URL class is very
