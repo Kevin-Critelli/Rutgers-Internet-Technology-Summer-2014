@@ -35,10 +35,23 @@ public class TrackerResponse {
 	public int incomplete;
 	public ArrayList<DPeer> peers;
 
+	/**
+	 * Creates a tracker response object, which
+	 * is responsible for updating RUBTClient about
+	 * what the tracker has to say about our progress.
+	 * 
+	 * @author pauljones
+	 */
 	public TrackerResponse() {
 
 	}
-
+	
+	/**
+	 * A convinient way of viewing the state of the
+	 * tracker's response.
+	 * 
+	 * @author pauljones
+	 */
 	public String toString() {
 		String ret = "TrackerResponse: \n";
 
@@ -62,8 +75,14 @@ public class TrackerResponse {
 		return ret;
 	}
 
+	/**
+	 * Given a torrent info object, this constructor
+	 * will return decoded data about the tracker's
+	 * state.
+	 * 
+	 * @param torrentInfo
+	 */
 	public TrackerResponse(TorrentInfo torrentInfo) {
-
 		byte[] encodedResponse = null;
 		try {
 			encodedResponse = getTrackerResponseWithEventStarted(torrentInfo);
@@ -151,15 +170,7 @@ public class TrackerResponse {
 				
 				this.peers.add(new DPeer(peerPort, peerIP));
 			} catch (Exception e) {
-				// I made the number 33 because that's the recommened number of
-				// peers.
-				// This exception exists because there are obviously not always
-				// going
-				// to be 33 peers. Sometimes there could be more. But for right
-				// now,
-				// I'm hacking and slashing and just going with it.
-				// It works. (TM)
-				// Also I'm sorry. This sucks.
+				
 			}
 		}
 	}
@@ -272,6 +283,21 @@ public class TrackerResponse {
 		return retArray;
 	}
 
+	/**
+	 * This allows an outside class or object to query the
+	 * tracker themselves with their own parameters.
+	 * 
+	 * @author pauljones
+	 * 
+	 * @param base_url
+	 * @param info_hash_input
+	 * @param downloaded
+	 * @param uploaded
+	 * @param left
+	 * @return
+	 * @throws MalformedURLException
+	 * @throws IOException
+	 */
 	public TrackerResponse getTrackerResponse(String base_url,
 			byte[] info_hash_input, int downloaded, int uploaded, int left)
 			throws MalformedURLException, IOException {
@@ -309,7 +335,6 @@ public class TrackerResponse {
 		try {
 			o = Bencoder2.decode(retArray);
 		} catch (BencodingException e1) {
-			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		}
 
@@ -387,6 +412,19 @@ public class TrackerResponse {
 		return returnResponse;
 	}
 
+	/**
+	 * This will send the tracker the event completed.
+	 * 
+	 * @author pauljones
+	 * 
+	 * @param base_url
+	 * @param info_hash_input
+	 * @param downloaded
+	 * @param uploaded
+	 * @param left
+	 * @throws MalformedURLException
+	 * @throws IOException
+	 */
 	public void sendTrackerFinishedEvent(String base_url,
 			byte[] info_hash_input, int downloaded, int uploaded, int left)
 			throws MalformedURLException, IOException {
@@ -423,6 +461,19 @@ public class TrackerResponse {
 		dis.close();
 	}
 
+	/**
+	 * This will send the tracker the event stopped.
+	 * 
+	 * @author pauljones
+	 * 
+	 * @param base_url
+	 * @param info_hash_input
+	 * @param downloaded
+	 * @param uploaded
+	 * @param left
+	 * @throws MalformedURLException
+	 * @throws IOException
+	 */
 	public void sendTrackerFinishedStopped(String base_url,
 			byte[] info_hash_input, int downloaded, int uploaded, int left)
 			throws MalformedURLException, IOException {
@@ -477,6 +528,14 @@ public class TrackerResponse {
 		return peers.size();
 	}
 
+	/**
+	 * You should use this list of peers if you want to safely
+	 * connect to Rutgers-only peers, listed in Sakai.
+	 * 
+	 * @author pauljones
+	 * 
+	 * @return
+	 */
 	public ArrayList<Peer> getAcceptablePeers() {
 		ArrayList<Peer> acceptablePeers = new ArrayList<Peer>(RUBTClientConstants.ACCEPTABLE_PEERS.length);
 
