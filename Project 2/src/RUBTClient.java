@@ -1,10 +1,13 @@
 import java.net.MalformedURLException;
+import java.awt.*;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.nio.ByteBuffer;
 import java.util.Scanner;
 import java.io.File;
+
+import javax.swing.*;
 
 /**
  * Main class in the torrent client
@@ -43,7 +46,30 @@ public class RUBTClient {
 		Scanner sc;
 		int i=0, choice=0;
 		
-		RUBTClientUtils.Parse_Torrent_Contact_Tracker(args[0]);
+		JFrame frame = new JFrame("RUBT Client");
+		String torrentFile = JOptionPane.showInputDialog(frame,
+				"Where's your torrent file?", "project2.torrent");
+
+		torrentInfo = TorrentInfo.getTorrentInfoFrom(torrentFile);
+		trackerResponse = new TrackerResponse(torrentInfo);
+		announce_url = trackerResponse.announceURL;
+		
+		JPanel mainPanel = new JPanel();
+		mainPanel.setLayout(new BorderLayout());
+		TorrentInfoView tiv = new TorrentInfoView(torrentInfo);
+		TrackerResponseView trv = new TrackerResponseView(trackerResponse);
+		mainPanel.add(tiv, BorderLayout.NORTH);
+		mainPanel.add(trv, BorderLayout.SOUTH);
+		
+		JProgressBar pg = new JProgressBar();
+		mainPanel.add(pg, BorderLayout.CENTER);
+		
+		frame.add(mainPanel);
+		
+		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setSize(720, 320);
+        frame.setVisible(true);
+		
 	
 		RUBTClientUtils.initializeFields();		
 		
@@ -60,15 +86,18 @@ public class RUBTClient {
 		f = new FrontDoor();
 		new Thread(f).start();*/
 
-		/*
+		
 		//spawn tracker thread to send updates during time interval
 		t = new TrackerThread();
-		new Thread(t).start();*/
+		new Thread(t).start();
 		
 		//Small Interface for user
 		sc = new Scanner(System.in);
 		while (true) {
-			System.out.println("1) Exit");	
+			int done = (int)(((float)downloaded / (float)torrentInfo.file_length) * 100);
+			pg.setValue(done);
+			trv.update(trackerResponse);
+			/*System.out.println("1) Exit");	
 			System.out.println();
 			choice = sc.nextInt();
 
@@ -95,8 +124,7 @@ public class RUBTClient {
 				}
 			}else {
 				System.out.println("Invalid option, please enter 1 to quit");
-			}
+			}*/
 		}
-		System.exit(0);
 	}
 }
