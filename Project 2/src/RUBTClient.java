@@ -51,7 +51,7 @@ public class RUBTClient {
 		String torrentFile = JOptionPane.showInputDialog(frame,
 				"Where's your torrent file?", "project2.torrent");
 
-		torrentInfo = TorrentInfo.getTorrentInfoFrom(torrentFile);
+		RUBTClientUtils.Parse_Torrent_Contact_Tracker(torrentFile);
 		trackerResponse = new TrackerResponse(torrentInfo);
 		announce_url = trackerResponse.announceURL;
 
@@ -99,30 +99,20 @@ public class RUBTClient {
 
 		sc = new Scanner(System.in);
 		while (true) {
-			int done = (int) (((float) downloaded / (float) torrentInfo.file_length) * 100);
-			pg.setValue(done);
+			pg.setValue((int) (((float) downloaded / (float) torrentInfo.file_length) * 100));
 			trv.update(trackerResponse);
 		}
 	}
 
 	public static void stopButtonPressed() {
-		System.out.println("Exiting Program and Current State...");
-
 		// stop threads from running, if any
 		for (int i = 0; i < trackerResponse.peers.size(); i++) {
 			trackerResponse.peers.get(i).isRunning = false;
 		}
 
 		if (RUBTClientUtils.check()) {
-			System.out.println();
-			System.out
-					.println("File Finished Downloading...Saving File Now...");
 			RUBTClientUtils.SaveFile();
 		} else {
-			System.out.println();
-			System.out.println("File Download Still In Progress ");
-			System.out.println("Total Bytes Downloaded: " + downloaded);
-			System.out.println("Total Bytes Left To Download: " + left);
 			// **ADD**SEND EVENT STOPPED TO TRACKER
 		}
 	}
