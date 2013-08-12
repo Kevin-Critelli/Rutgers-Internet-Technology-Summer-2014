@@ -4,7 +4,6 @@ import java.awt.event.*;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.nio.ByteBuffer;
-import java.util.*;
 import java.io.File;
 
 import javax.swing.*;
@@ -100,9 +99,24 @@ public class RUBTClient {
 			thread.start();
 		}
 
+		JPanel peerPanel = new JPanel(new BorderLayout());
 		peerTable = new JTable(new PeerTableModel(trackerResponse,
 				trackerResponse.peerSize()));
-		mainPanel.add(peerTable, BorderLayout.CENTER);
+
+		JTableHeader th = peerTable.getTableHeader();
+		TableColumnModel tcm = th.getColumnModel();
+		TableColumn tc = tcm.getColumn(0);
+		tc.setHeaderValue( "Peer IPs" );
+		tc = tcm.getColumn(1);
+		tc.setHeaderValue( "Peer port" );
+		tc = tcm.getColumn(2);
+		tc.setHeaderValue( "Is choked?" );
+		th.repaint();
+		
+		peerPanel.add(peerTable, BorderLayout.CENTER);
+		peerPanel.add(peerTable.getTableHeader(), BorderLayout.NORTH);
+		
+		mainPanel.add(peerPanel, BorderLayout.CENTER);
 
 		t = new TrackerThread();
 		Thread thread = new Thread(t);
