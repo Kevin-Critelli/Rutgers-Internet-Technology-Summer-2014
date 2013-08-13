@@ -1,10 +1,12 @@
-import java.net.MalformedURLException;
-import java.io.FileOutputStream;
+import java.net.UnknownHostException;
+import java.awt.*;
+import java.awt.event.*;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.nio.ByteBuffer;
-import java.util.Scanner;
 import java.io.File;
+
+import javax.swing.*;
+import javax.swing.table.*;
 
 /**
  * Main class in the torrent client
@@ -12,7 +14,6 @@ import java.io.File;
  * interface for the user, and closes client when necessary.
  * 
  * */
-
 public class RUBTClient {
 	
 	//static members belong to class, not specific instances
@@ -31,31 +32,81 @@ public class RUBTClient {
 	public static String announce_url = "";
 	public static File filePtr = null;
 	public static int numPieces = 0;
-
-	/**
-	 * @param args
-	 * @throws InterruptedException
-	 */
+	public static JFrame frame;
+	public static JTable peerTable;
+	public static JButton stopButton;
+	public static String filename;
 
 	public static void main(String[] args) throws InterruptedException {
 		
-		if(args.length != 2){
-			System.out.println("Incorrect invocation of program");
-			System.out.println("Correct usage:");
-			System.out.println("java RUBTClient <torrent file> <name of file to save to>");
-			System.out.println("exiting...");
-			System.exit(0);
-		}
+		frame = new JFrame("RUBT Client");
+		String torrentFile = JOptionPane.showInputDialog(frame,
+				"Where's your torrent file?", "project2.torrent");
+		filename = JOptionPane.showInputDialog(frame,
+				"What would you like to call the saved file?");
 	
 		TrackerThread t;
 		FrontDoor f;
-		Scanner sc;
-		int i=0, choice=0;
+		int i = 0;
 		
-		RUBTClientUtils.Parse_Torrent_Contact_Tracker(args[0]);
+		RUBTClientUtils.Parse_Torrent_Contact_Tracker(torrentFile);
 		RUBTClientUtils.initializeFields();		
 		RUBTClientUtils.checkState(filePtr);
 			
+		trackerResponse = new TrackerResponse(torrentInfo);
+		announce_url = trackerResponse.announceURL;
+		
+		JPanel mainPanel = new JPanel();
+		mainPanel.setLayout(new BorderLayout());
+
+		TorrentInfoView tiv = new TorrentInfoView(torrentInfo);
+		TrackerResponseView trv = new TrackerResponseView(trackerResponse);
+
+		JPanel headerPanel = new JPanel(new GridLayout(2, 1));
+		headerPanel.add(tiv);
+		headerPanel.add(trv);
+		mainPanel.add(headerPanel, BorderLayout.NORTH);
+
+		JPanel progressPanel = new JPanel(new BorderLayout());
+		stopButton = new JButton("Finish and save");
+		stopButton.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				finishAndSaveButtonClicked();
+			}
+		});
+
+		stopButton.setEnabled(false);
+		JProgressBar pg = new JProgressBar();
+		progressPanel.add(stopButton, BorderLayout.EAST);
+		progressPanel.add(pg, BorderLayout.CENTER);
+		mainPanel.add(progressPanel, BorderLayout.SOUTH);
+
+		frame.add(mainPanel);
+
+		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		frame.setSize(720, 320);
+		frame.setMinimumSize(new Dimension(480, 240));
+		frame.setMaximumSize(new Dimension(900, 280));
+		frame.setVisible(true);
+		
+		JPanel peerPanel = new JPanel(new BorderLayout());
+		peerTable = new JTable(new PeerTableModel(trackerResponse, trackerResponse.peerSize()));
+
+		JTableHeader th = peerTable.getTableHeader();
+		TableColumnModel tcm = th.getColumnModel();
+		TableColumn tc = tcm.getColumn(0);
+		tc.setHeaderValue( "Peer IPs" );
+		tc = tcm.getColumn(1);
+		tc.setHeaderValue( "Peer port" );
+		tc = tcm.getColumn(2);
+		tc.setHeaderValue( "Is choked?" );
+		th.repaint();
+		
+		peerPanel.add(peerTable, BorderLayout.CENTER);
+		peerPanel.add(peerTable.getTableHeader(), BorderLayout.NORTH);
+		
+		mainPanel.add(peerPanel, BorderLayout.CENTER);
+		
 		//spawn download threads
 		for (i = 0; i < trackerResponse.peers.size(); i++) {
 			if(trackerResponse.peers.get(i).ip.startsWith("128:6:171")){
@@ -73,45 +124,89 @@ public class RUBTClient {
 		t = new TrackerThread();
 		new Thread(t).start();
 		
-		//Small Interface for user
-		sc = new Scanner(System.in);
+		
 		while (true) {
-			System.out.println();
-			System.out.println("1) Exit");	
-			System.out.println("2) View Progress");
-			System.out.println();
-			choice = sc.nextInt();
+			int done = (int) (((float) downloaded / (float) torrentInfo.file_length) * 100);
+			pg.setValue(done);
+			trv.update(trackerResponse);
 
-			if (choice == 1) {
-				System.out.println("Exiting Program and Current State...");
+			if (done <= 100) {
+				stopButton.setEnabled(true);
 				
-				//stop threads from running, if any
-				for (i = 0; i < trackerResponse.peers.size(); i++) {
-					trackerResponse.peers.get(i).isRunning = false;
+				try {
+					trackerResponse.sendEventCompleted(torrentInfo);
+				} catch (UnknownHostException e1) {
+					e1.printStackTrace();
+				} catch (IOException e1) {
+					e1.printStackTrace();
 				}
-				
-				t.running = false;
-				
-				if(RUBTClientUtils.check()) {
-					System.out.println();
-					System.out.println("File Finished Downloading...Saving File Now...");
-					RUBTClientUtils.SaveFile(args[1]);
-					break;
-				}else{
-					System.out.println();
-					System.out.println("File Download Still In Progress ");
-					System.out.println("Total Bytes Downloaded: " + downloaded);
-					System.out.println("Total Bytes Left To Download: " + left);
-					//**ADD**SEND EVENT STOPPED TO TRACKER
-					break;
-				}
-			}else if (choice == 2){
-				System.out.println("Downloaded - " + downloaded);
-				System.out.println("Uploaded - " + uploaded);
-			}else{
-				System.out.println("Invalid option, please enter 1 to quit or 2 to view progress");
+			}
+
+			PeerTableModel tableModel = (PeerTableModel) peerTable.getModel();
+			tableModel.setPeerList(trackerResponse, trackerResponse.peerSize());
+			peerTable.setModel(tableModel);
+		}	
+	}
+	
+	public static void finishAndSaveButtonClicked() {
+		// stop threads from running, if any
+		for (int i = 0; i < trackerResponse.peers.size(); i++) {
+			trackerResponse.peers.get(i).isRunning = false; // this doesn't seem
+															// to stop them!
+		}
+
+		if (RUBTClientUtils.check()) {
+			RUBTClientUtils.SaveFile(filename);
+		} else {
+			try {
+				trackerResponse.sendEventStopped(torrentInfo);
+			} catch (UnknownHostException e) {
+				e.printStackTrace();
+			} catch (IOException e) {
+				e.printStackTrace();
 			}
 		}
+
+		frame.setVisible(false);
 		System.exit(0);
+	}
+}
+
+/**
+ * This is how the table in the RUBTClient frame gets updated from the tracker
+ * response and peers.
+ * 
+ * @author pauljones
+ * 
+ */
+class PeerTableModel extends DefaultTableModel {
+	private static final long serialVersionUID = 6201801201614880087L;
+	private TrackerResponse ti;
+	private int numberOfPeers = 0;
+
+	public PeerTableModel(TrackerResponse ti, int numberOfPeers) {
+		this.ti = ti;
+		this.numberOfPeers = numberOfPeers;
+	}
+
+	public void setPeerList(TrackerResponse ti, int numberOfPeers) {
+		this.ti = ti;
+		this.numberOfPeers = numberOfPeers;
+	}
+
+	public int getColumnCount() {
+		return 3;
+	}
+
+	public int getRowCount() {
+		return numberOfPeers;
+	}
+
+	public Object getValueAt(int row, int column) {
+		if (row >= ti.peers.size()) {
+			return null;
+		}
+
+		return ti.peers.get(row).getTableInfo()[column];
 	}
 }
