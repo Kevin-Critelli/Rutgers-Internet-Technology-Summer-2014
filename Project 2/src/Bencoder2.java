@@ -1,3 +1,9 @@
+/**
+ * @author Kevin Critelli
+ * @author Paul Jones
+ * @author Richie von der Schmidt
+ */
+
 /*
  *  RUBTClient is a BitTorrent client written at Rutgers University for 
  *  instructional use.

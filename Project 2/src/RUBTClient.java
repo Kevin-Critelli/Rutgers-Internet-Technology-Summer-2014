@@ -1,3 +1,9 @@
+/**
+ * @author Kevin Critelli
+ * @author Paul Jones
+ * @author Richie von der Schmidt
+ */
+
 import java.net.UnknownHostException;
 import java.awt.*;
 import java.awt.event.*;
@@ -91,9 +97,9 @@ public class RUBTClient {
 		frame.addWindowListener(new WindowAdapter() {
 			@Override
 			public void windowClosing(WindowEvent we) {
-				
+
 				System.out.println("stopped!");
-				
+
 				try {
 					trackerResponse.sendEventStopped(torrentInfo);
 				} catch (UnknownHostException e) {
@@ -101,7 +107,7 @@ public class RUBTClient {
 				} catch (IOException e) {
 					e.printStackTrace();
 				}
-				
+
 				System.exit(0);
 			}
 		});

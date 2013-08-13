@@ -1,4 +1,10 @@
 /**
+ * @author Kevin Critelli
+ * @author Paul Jones
+ * @author Richie von der Schmidt
+ */
+
+/**
  * This class represents a connection that handles uploading from a peer
  * Written by Richie / Kevin
  * 

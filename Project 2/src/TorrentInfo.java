@@ -1,11 +1,15 @@
 /**
+ * @author Kevin Critelli
+ * @author Paul Jones
+ * @author Richie von der Schmidt
+ */
+/**
  * Group Members (CS 352 Internet Technology 2013 Summer Session Project 0)
  * 
  * Kevin Critelli
  * Ritchie Vonderschmidt
  * Paul Jones
  * */
-
 /*
  * RUBTClient is a BitTorrent client written at Rutgers University for
  * instructional use.

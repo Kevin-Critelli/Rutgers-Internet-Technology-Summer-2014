@@ -1,3 +1,9 @@
+/**
+ * @author Kevin Critelli
+ * @author Paul Jones
+ * @author Richie von der Schmidt
+ */
+
 import java.nio.ByteBuffer;
 
 public class RUBTClientConstants {

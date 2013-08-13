@@ -1,4 +1,10 @@
 /**
+ * @author Kevin Critelli
+ * @author Paul Jones
+ * @author Richie von der Schmidt
+ */
+
+/**
  * Group Members (CS 352 Internet Technology 2013 Summer Session Project 0)
  *
  * Kevin Critelli
@@ -132,7 +138,7 @@ public class TrackerResponse {
 		this.peers = new ArrayList<DPeer>();
 
 		System.out.println(peersResponse.array().length / 6);
-		
+
 		for (int i = 0; i < peersResponse.array().length / 6; i++) {
 			try {
 				String peerIP = "";
@@ -453,8 +459,8 @@ public class TrackerResponse {
 		return retArray;
 	}
 
-	public byte[] sendEventCompleted(TorrentInfo ti) throws UnknownHostException,
-			IOException {
+	public byte[] sendEventCompleted(TorrentInfo ti)
+			throws UnknownHostException, IOException {
 
 		String info_hash = RUBTClientUtils.toHexString(ti.info_hash.array()); // info_hash
 		String peer_id = RUBTClientUtils
