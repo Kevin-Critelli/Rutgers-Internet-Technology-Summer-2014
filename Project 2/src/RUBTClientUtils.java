@@ -3,8 +3,13 @@ import java.io.FileInputStream;
 import java.nio.ByteBuffer;
 import java.io.File;
 
-public class RUBTClientUtils extends RUBTClient {
+/**
+ * Utility Class 
+ * 
+ * */
 
+public class RUBTClientUtils extends RUBTClient {
+	
 	/**
 	 * Checks to see if we have all pieces before closing the program
 	 * 
@@ -169,7 +174,7 @@ public class RUBTClientUtils extends RUBTClient {
 	}
 	
 	/**
-	 * This function is called when we have completed downloaded the file
+	 * This function is called when we have completed downloading the file
 	 * It simply saves the bytes we've downloaded out to a file, the name of the file
 	 * is determined from the torrent info, it also deletes the 'sav.dat' because it is 
 	 * only used for resuming state, and at this point we have already downloaded the whole file
@@ -178,11 +183,11 @@ public class RUBTClientUtils extends RUBTClient {
 	 * @author Kevin Critelli
 	 * */
 	
-	public static final void SaveFile(){
+	public static final void SaveFile(String fileName){
 		int i;
 		
 		try {					
-			FileOutputStream fileoutput = new FileOutputStream(new File(torrentInfo.file_name));
+			FileOutputStream fileoutput = new FileOutputStream(new File(fileName));
 									
 			for (i = 0; i < pieces.length; i++) {
 				byte[] array = pieces[i].array();
@@ -220,6 +225,7 @@ public class RUBTClientUtils extends RUBTClient {
 	 * */
 	
 	public static synchronized void update(int index, byte[]fullPiece) throws Exception{
+		//System.out.println("Finished Downloading Piece " + index);
 		downloaded += fullPiece.length;
 		left = left - fullPiece.length;
 		ByteBuffer buffer = ByteBuffer.wrap(fullPiece);
@@ -272,7 +278,7 @@ public class RUBTClientUtils extends RUBTClient {
 		
 		if (RUBTClientConstants.DEVELOP)
 			System.out.println(torrentInfo);
-
+			
 		//send HTTP Request to tracker
 		trackerResponse = new TrackerResponse(torrentInfo);
 

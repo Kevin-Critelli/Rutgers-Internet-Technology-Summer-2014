@@ -1,3 +1,4 @@
+
 /**
  * Group Members (CS 352 Internet Technology 2013 Summer Session Project 0)
  *
@@ -24,69 +25,20 @@ import java.util.HashMap;
 
 public class TrackerResponse {
 
-	/**
-	 * If a tracker response has a key failure reason, then that maps to a human
-	 * readable string which explains why the query failed, and no other keys
-	 * are required.
-	 */
 	public String failureReason;
-	/**
-	 * If present, then no other keys may be present. The value is a
-	 * human-readable error message as to why the request failed (string).
-	 */
 	public String failureMessage;
-	/**
-	 * The announce URL of the tracker (string)
-	 */
 	public String announceURL;
-	/**
-	 * Interval in seconds that the client should wait between sending regular
-	 * requests to the tracker
-	 */
 	public int interval;
-	/**
-	 * (optional) Minimum announce interval. If present clients must not
-	 * reannounce more frequently than this.
-	 */
 	public int minimumInterval;
-	/**
-	 * A string that the client should send back on its next announcements. If
-	 * absent and a previous announce sent a tracker id, do not discard the old
-	 * value; keep using it.
-	 */
 	public String trackerID;
-	/**
-	 * number of peers with the entire file, i.e. seeders (integer)
-	 */
 	public int complete;
-	/**
-	 * number of non-seeder peers, aka "leechers" (integer)
-	 */
 	public int incomplete;
-	/**
-	 * (dictionary model) The value is a list of dictionaries, each with the
-	 * following keys: peer id: peer's self-selected ID, as described above for
-	 * the tracker request (string) ip: peer's IP address either IPv6 (hexed) or
-	 * IPv4 (dotted quad) or DNS name (string) port: peer's port number
-	 * (integer)
-	 */
 	public ArrayList<DPeer> peers;
 
-	/**
-	 * Creates a tracker response object, which is responsible for updating
-	 * RUBTClient about what the tracker has to say about our progress.
-	 * 
-	 * @author pauljones
-	 */
 	public TrackerResponse() {
 
 	}
 
-	/**
-	 * A convinient way of viewing the state of the tracker's response.
-	 * 
-	 * @author pauljones
-	 */
 	public String toString() {
 		String ret = "TrackerResponse: \n";
 
@@ -110,13 +62,8 @@ public class TrackerResponse {
 		return ret;
 	}
 
-	/**
-	 * Given a torrent info object, this constructor will return decoded data
-	 * about the tracker's state.
-	 * 
-	 * @param torrentInfo
-	 */
 	public TrackerResponse(TorrentInfo torrentInfo) {
+
 		byte[] encodedResponse = null;
 		try {
 			encodedResponse = getTrackerResponseWithEventStarted(torrentInfo);
@@ -197,70 +144,24 @@ public class TrackerResponse {
 				peerIP += ":";
 				peerIP += peersResponse.get() & 0xff;
 
-				// CHANGED CODE HERE SO WE CAN CONNECT TO MORE PEERS @Kevin
-				int firstByte = (0x000000FF & ((int) peersResponse.get()));
-				int secondByte = (0x000000FF & ((int) peersResponse.get()));
-				int peerPort = (firstByte << 8 | secondByte);
-
+				//CHANGED CODE HERE SO WE CAN CONNECT TO MORE PEERS @Kevin
+				int firstByte = (0x000000FF & ((int)peersResponse.get()));
+                int secondByte = (0x000000FF & ((int)peersResponse.get()));
+                int peerPort  = (firstByte << 8 | secondByte);
+				
 				this.peers.add(new DPeer(peerPort, peerIP));
 			} catch (Exception e) {
-
+				// I made the number 33 because that's the recommened number of
+				// peers.
+				// This exception exists because there are obviously not always
+				// goinga
+				// to be 33 peers. Sometimes there could be more. But for right
+				// now,
+				// I'm hacking and slashing and just going with it.
+				// It works. (TM)
+				// Also I'm sorry. This sucks.
 			}
 		}
-	}
-
-	/**
-	 * Send an HTTP GET request to the tracker at the IP address and port
-	 * specified by the TorrentFile object. The java.net.URL class is very
-	 * useful for this. Sends the stopped event.
-	 * 
-	 * @author Paul Jones
-	 * 
-	 * @param ti
-	 *            any torrent info object
-	 * @throws UnknownHostException
-	 * @throws IOException
-	 */
-	public byte[] sendEventStopped(TorrentInfo ti) throws UnknownHostException,
-			IOException {
-
-		String info_hash = RUBTClientUtils.toHexString(ti.info_hash.array()); // info_hash
-		String peer_id = RUBTClientUtils
-				.toHexString(RUBTClientConstants.peerid); // peer_id
-
-		String port = "" + 6883; // port
-		String downloaded = "" + 0;
-		String uploaded = "" + 0;
-		String left = "" + ti.file_length;
-		String announceURL = ti.announce_url.toString();
-
-		String newURL = announceURL.toString();
-		this.announceURL = newURL;
-
-		newURL += "?" + RUBTClientConstants.TRACKER_RESPONSE_KEY_INFO_HASH
-				+ "=" + info_hash + "&"
-				+ RUBTClientConstants.TRACKER_RESPONSE_KEY_PEER_ID + "="
-				+ peer_id + "&" + RUBTClientConstants.TRACKER_RESPONSE_KEY_PORT
-				+ "=" + port + "&"
-				+ RUBTClientConstants.TRACKER_RESPONSE_KEY_UPLOADED + "="
-				+ uploaded + "&"
-				+ RUBTClientConstants.TRACKER_RESPONSE_KEY_DOWNLOADED + "="
-				+ downloaded + "&"
-				+ RUBTClientConstants.TRACKER_RESPONSE_KEY_LEFT + "=" + left
-				+ "&" + RUBTClientConstants.TRACKER_RESPONSE_KEY_EVENT + "="
-				+ RUBTClientConstants.TRACKER_RESPONSE_KEY_STOPPED;
-
-		HttpURLConnection huc = (HttpURLConnection) new URL(newURL)
-				.openConnection();
-		DataInputStream dis = new DataInputStream(huc.getInputStream());
-
-		int dataSize = huc.getContentLength();
-		byte[] retArray = new byte[dataSize];
-
-		dis.readFully(retArray);
-		dis.close();
-
-		return retArray;
 	}
 
 	/**
@@ -282,7 +183,7 @@ public class TrackerResponse {
 		String peer_id = RUBTClientUtils
 				.toHexString(RUBTClientConstants.peerid); // peer_id
 
-		String port = "" + 6883; // port
+		String port = "" + 5600; // port
 		String downloaded = "" + 0;
 		String uploaded = "" + 0;
 		String left = "" + ti.file_length;
@@ -317,21 +218,6 @@ public class TrackerResponse {
 		return retArray;
 	}
 
-	/**
-	 * This allows an outside class or object to query the tracker themselves
-	 * with their own parameters.
-	 * 
-	 * @author pauljones
-	 * 
-	 * @param base_url
-	 * @param info_hash_input
-	 * @param downloaded
-	 * @param uploaded
-	 * @param left
-	 * @return
-	 * @throws MalformedURLException
-	 * @throws IOException
-	 */
 	public TrackerResponse getTrackerResponse(String base_url,
 			byte[] info_hash_input, int downloaded, int uploaded, int left)
 			throws MalformedURLException, IOException {
@@ -340,7 +226,7 @@ public class TrackerResponse {
 		String peer_id = RUBTClientUtils
 				.toHexString(RUBTClientConstants.peerid); // peer_id
 
-		String port = "" + 6883; // port
+		String port = "" + 5600; // port
 
 		String newURL = base_url;
 
@@ -369,6 +255,7 @@ public class TrackerResponse {
 		try {
 			o = Bencoder2.decode(retArray);
 		} catch (BencodingException e1) {
+			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		}
 
@@ -395,7 +282,7 @@ public class TrackerResponse {
 			returnResponse.complete = (Integer) response
 					.get(RUBTClientConstants.TRACKER_RESPONSE_KEY_COMPLETE);
 		else {
-			// System.out.println("Warning: no complete, setting to zero");
+			//System.out.println("Warning: no complete, setting to zero");
 			returnResponse.complete = 0;
 		}
 
@@ -404,7 +291,7 @@ public class TrackerResponse {
 			returnResponse.incomplete = (Integer) response
 					.get(RUBTClientConstants.TRACKER_RESPONSE_KEY_INCOMPLETE);
 		else {
-			// System.out.println("Warning: no incomplete, setting to zero");
+			//System.out.println("Warning: no incomplete, setting to zero");
 			returnResponse.incomplete = 0;
 		}
 
@@ -413,7 +300,7 @@ public class TrackerResponse {
 			returnResponse.minimumInterval = (Integer) response
 					.get(RUBTClientConstants.TRACKER_RESPONSE_KEY_MIN_INTERVAL);
 		else {
-			// System.out.println("Warning: no minimum interval, setting to zero");
+			//System.out.println("Warning: no minimum interval, setting to zero");
 			returnResponse.minimumInterval = 0;
 		}
 
@@ -422,6 +309,8 @@ public class TrackerResponse {
 		ByteBuffer peersResponse = (ByteBuffer) response
 				.get(RUBTClientConstants.TRACKER_RESPONSE_KEY_PEERS);
 		returnResponse.peers = new ArrayList<DPeer>();
+		
+		//FIX THIS
 
 		for (int i = 0; i < 33; i++) {
 			try {
@@ -446,19 +335,6 @@ public class TrackerResponse {
 		return returnResponse;
 	}
 
-	/**
-	 * This will send the tracker the event completed.
-	 * 
-	 * @author pauljones
-	 * 
-	 * @param base_url
-	 * @param info_hash_input
-	 * @param downloaded
-	 * @param uploaded
-	 * @param left
-	 * @throws MalformedURLException
-	 * @throws IOException
-	 */
 	public void sendTrackerFinishedEvent(String base_url,
 			byte[] info_hash_input, int downloaded, int uploaded, int left)
 			throws MalformedURLException, IOException {
@@ -467,8 +343,8 @@ public class TrackerResponse {
 		String peer_id = RUBTClientUtils
 				.toHexString(RUBTClientConstants.peerid); // peer_id
 
-		String port = "" + 6883; // port
-
+		String port = "" + 5600; // port
+		
 		String newURL = base_url;
 
 		newURL += "?" + RUBTClientConstants.TRACKER_RESPONSE_KEY_INFO_HASH
@@ -487,7 +363,7 @@ public class TrackerResponse {
 		HttpURLConnection huc = (HttpURLConnection) new URL(newURL)
 				.openConnection();
 		DataInputStream dis = new DataInputStream(huc.getInputStream());
-
+		
 		int dataSize = huc.getContentLength();
 		byte[] retArray = new byte[dataSize];
 
@@ -495,19 +371,6 @@ public class TrackerResponse {
 		dis.close();
 	}
 
-	/**
-	 * This will send the tracker the event stopped.
-	 * 
-	 * @author pauljones
-	 * 
-	 * @param base_url
-	 * @param info_hash_input
-	 * @param downloaded
-	 * @param uploaded
-	 * @param left
-	 * @throws MalformedURLException
-	 * @throws IOException
-	 */
 	public void sendTrackerFinishedStopped(String base_url,
 			byte[] info_hash_input, int downloaded, int uploaded, int left)
 			throws MalformedURLException, IOException {
@@ -516,7 +379,7 @@ public class TrackerResponse {
 		String peer_id = RUBTClientUtils
 				.toHexString(RUBTClientConstants.peerid); // peer_id
 
-		String port = "" + 6883; // port
+		String port = "" + 5600; // port
 
 		String newURL = base_url;
 
@@ -562,24 +425,15 @@ public class TrackerResponse {
 		return peers.size();
 	}
 
-	/**
-	 * You should use this list of peers if you want to safely connect to
-	 * Rutgers-only peers, listed in Sakai.
-	 * 
-	 * @author pauljones
-	 * 
-	 * @return
-	 */
 	public ArrayList<Peer> getAcceptablePeers() {
-		ArrayList<Peer> acceptablePeers = new ArrayList<Peer>(
-				RUBTClientConstants.ACCEPTABLE_PEERS.length);
+		ArrayList<Peer> acceptablePeers = new ArrayList<Peer>(2);
 
 		for (int i = 0; i < peerSize(); i++) {
-			for (int j = 0; j < RUBTClientConstants.ACCEPTABLE_PEERS.length; j++) {
-				if (this.peers.get(i).ip
-						.contains(RUBTClientConstants.ACCEPTABLE_PEERS[j])) {
-					acceptablePeers.add(this.peers.get(i));
-				}
+			if (getPeerAtIndex(i).ip
+					.contains(RUBTClientConstants.ACCEPTABLE_PEER_1)
+					|| getPeerAtIndex(i).ip
+							.contains(RUBTClientConstants.ACCEPTABLE_PEER_2)) {
+				acceptablePeers.add(getPeerAtIndex(i));
 			}
 		}
 

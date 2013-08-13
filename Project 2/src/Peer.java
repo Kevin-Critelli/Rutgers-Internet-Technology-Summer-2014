@@ -27,11 +27,6 @@ public abstract class Peer extends RUBTClient implements Runnable {
 		return "" + ip + ":" + port;
 	}
 	
-	public String[] getTableInfo() {
-		String[] tableInfo = new String[] {ip, "" + port, "" + isChoked};
-		return tableInfo;
-	}
-	
 	/**
 	 * Closes all streams for this Peer object
 	 * 

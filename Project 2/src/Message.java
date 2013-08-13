@@ -85,8 +85,7 @@ public class Message {
 		this.message[0] = (byte) 19;
 		this.info_hash = info_hash;
 		this.peerid = peerid;
-		System.arraycopy(RUBTClientConstants.BIT_TORRENT_PROTOCOL, 0,
-				this.message, 1, 19);
+		System.arraycopy(RUBTClientConstants.BIT_TORRENT_PROTOCOL, 0, this.message,1, 19);
 		System.arraycopy(info_hash, 0, this.message, 28, 20);
 		System.arraycopy(peerid, 0, this.message, 48, 20);
 	}
@@ -287,57 +286,52 @@ public class Message {
 		}
 		return result;
 	}
-
+	
 	/**
-	 * Reads a message from the data input stream and determines what type of
-	 * message it is, it returns the byte id corresponding to the type of
-	 * message it is
+	 * Reads a message from the data input stream and determines
+	 * what type of message it is, it returns the byte id corresponding
+	 * to the type of message it is
 	 * 
 	 * @author Kevin Critelli
 	 * 
-	 * @param din
-	 *            The datainputstream object
+	 * @param din The datainputstream object
 	 * @return byte The byte id of the message
 	 * */
-
-	public static final byte readMessage(DataInputStream din) throws Exception {
-		int length = din.readInt();
-
-		if (length == 0) {
-			return -1;
-		}
-
+	
+	public static final byte readMessage(DataInputStream din)throws Exception{
+		int length = din.readInt(); 
+		
+		if(length == 0){return -1;}
+		
 		byte id = din.readByte();
-
-		switch (id) {
-		case 0: // choke message
-			// System.out.println("choke");
-			return id;
-		case 1: // unchoke message
-				// System.out.println("unchoked");
-			return id;
-		case 2: // interested message
-			return id;
-		case 3: // not interested message
-			return id;
-		case 4: // have message
-			return id;
-		case 5: // bitfield message
-				// System.out.println("bit field");
-				// System.out.println("length of bitfield " + length);
-			for (int i = 0; i < length - 1; i++) {
-				din.readByte();
-			}
-			return id;
-		case 6: // request message
-			return id;
-		case 7: // piece message
-			int index = din.readInt();
-			int begin = din.readInt();
-		case 8: // cancel message
-			return id;
-		default:
-			break;
+		
+		switch(id){
+			case 0: //choke message
+					return id;
+			case 1: //unchoke message
+					return id;
+			case 2: //interested message
+					return id;
+			case 3: //not interested message
+					return id;
+			case 4: //have message
+					din.readInt();
+					return id;
+			case 5: //bitfield message 
+					//System.out.println("bit field");
+					//System.out.println("length of bitfield " + length);
+					for(int i =0;i<length-1;i++){
+						din.readByte();
+					}
+					return id;
+			case 6: //request message
+					return id;
+			case 7: //piece message
+					int index = din.readInt(); 
+					int begin = din.readInt(); 
+			case 8: //cancel message
+					return id;
+			default: break;
 		}
 		return 0;
 	}
