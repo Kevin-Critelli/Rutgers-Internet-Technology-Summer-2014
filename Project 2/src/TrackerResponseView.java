@@ -31,7 +31,7 @@ public class TrackerResponseView extends JPanel {
 		this.add(numberOfPeersLabel);
 		
 		uploadedVariable = new JLabel();
-		uploadedVariable.setText("" + 0);
+		uploadedVariable.setText("Uploaded: " + 0);
 		uploadedVariable.setHorizontalAlignment( SwingConstants.CENTER );
 		this.add(uploadedVariable);
 
@@ -40,6 +40,6 @@ public class TrackerResponseView extends JPanel {
 	public void update(TrackerResponse tr, int uploaded) {
 		trackerIntervalLabel.setText("Tracker update interval: " + tr.interval);
 		numberOfPeersLabel.setText("Number of peers: " + tr.peerSize() + " (" + tr.complete + " seeders/" + tr.incomplete + " leechers)");
-		uploadedVariable.setText("" + uploaded);
+		uploadedVariable.setText("Uploaded: " + uploaded);
 	}
 }

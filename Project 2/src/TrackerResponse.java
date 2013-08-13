@@ -131,7 +131,9 @@ public class TrackerResponse {
 				.get(RUBTClientConstants.TRACKER_RESPONSE_KEY_PEERS);
 		this.peers = new ArrayList<DPeer>();
 
-		for (int i = 0; i < this.complete + this.incomplete; i++) {
+		System.out.println(peersResponse.array().length / 6);
+		
+		for (int i = 0; i < peersResponse.array().length / 6; i++) {
 			try {
 				String peerIP = "";
 
@@ -143,7 +145,6 @@ public class TrackerResponse {
 				peerIP += ":";
 				peerIP += peersResponse.get() & 0xff;
 
-				// CHANGED CODE HERE SO WE CAN CONNECT TO MORE PEERS @Kevin
 				int firstByte = (0x000000FF & ((int) peersResponse.get()));
 				int secondByte = (0x000000FF & ((int) peersResponse.get()));
 				int peerPort = (firstByte << 8 | secondByte);
@@ -301,9 +302,7 @@ public class TrackerResponse {
 				.get(RUBTClientConstants.TRACKER_RESPONSE_KEY_PEERS);
 		returnResponse.peers = new ArrayList<DPeer>();
 
-		// FIX THIS
-
-		for (int i = 0; i < this.complete + this.incomplete; i++) {
+		for (int i = 0; i < peersResponse.array().length / 6; i++) {
 			try {
 				String peerIP = "";
 
@@ -315,7 +314,9 @@ public class TrackerResponse {
 				peerIP += ":";
 				peerIP += peersResponse.get() & 0xff;
 
-				int peerPort = peersResponse.get() * 256 + peersResponse.get();
+				int firstByte = (0x000000FF & ((int) peersResponse.get()));
+				int secondByte = (0x000000FF & ((int) peersResponse.get()));
+				int peerPort = (firstByte << 8 | secondByte);
 
 				returnResponse.peers.add(new DPeer(peerPort, peerIP));
 			} catch (Exception e) {
